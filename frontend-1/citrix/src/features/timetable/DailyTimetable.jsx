@@ -43,10 +43,11 @@ export default function DailyTimetable() {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
   const filteredSessions = sessions.filter((s) => {
-    if (s.day !== selectedDay) return false;
+    const dayAbbr = selectedDay.slice(0, 3).toUpperCase();
+    if (s.day !== selectedDay && s.day !== dayAbbr && s.dayAbbr !== dayAbbr) return false;
     if (selectedCohort !== 'All' && s.group !== selectedCohort && !(s.groups && s.groups.includes(selectedCohort))) return false;
     return true;
-  }).sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+  }).sort((a, b) => (Number(a.start_period || 1) - Number(b.start_period || 1)));
 
   return (
     <div className="space-y-6">

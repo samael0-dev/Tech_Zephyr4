@@ -29,7 +29,7 @@ export default function WeeklyTimetable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterMode, setFilterMode] = useState('group'); // 'group', 'faculty', 'room'
-  const [selectedEntityId, setSelectedEntityId] = useState('CSE-A1');
+  const [selectedEntityId, setSelectedEntityId] = useState('Y1-A');
   const [selectedSession, setSelectedSession] = useState(null);
 
   useEffect(() => {
@@ -50,31 +50,111 @@ export default function WeeklyTimetable() {
   }, []);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const timeSlots = [
-    '08:00',
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '14:00',
-    '15:00',
-    '16:00',
-    '17:00',
+  const periods = [
+    { period: 1, label: 'Period 1', time: '08:30 - 09:30' },
+    { period: 2, label: 'Period 2', time: '09:30 - 10:30' },
+    { period: 3, label: 'Period 3', time: '10:30 - 11:30' },
+    { period: 4, label: 'Period 4', time: '11:30 - 12:30' },
+    { period: 5, label: 'Period 5', time: '12:30 - 13:30' },
+    { period: 6, label: 'Period 6', time: '13:30 - 14:30' },
+    { period: 7, label: 'Period 7', time: '14:30 - 15:30' },
+    { period: 8, label: 'Period 8', time: '15:30 - 16:30' },
+    { period: 9, label: 'Period 9', time: '16:30 - 17:30' },
   ];
+
+  // Dynamically extract cohorts, faculty, and rooms from sessions
+  const availableGroups = React.useMemo(() => {
+    const groupSet = new Set();
+    sessions.forEach((s) => {
+      if (s.groups && Array.isArray(s.groups)) {
+        s.groups.forEach((g) => groupSet.add(g));
+      } else if (s.group) {
+        groupSet.add(s.group);
+      }
+    });
+    if (groupSet.size > 0) {
+      return Array.from(groupSet).sort().map((g) => {
+        const found = STUDENT_GROUPS.find((sg) => sg.id === g);
+        return {
+          id: g,
+          name: found ? found.name : `Cohort ${g}`,
+          dept: found ? found.dept : g.split('-')[0] || 'COMMON',
+        };
+      });
+    }
+    return STUDENT_GROUPS;
+  }, [sessions]);
+
+  const availableFaculty = React.useMemo(() => {
+    const facMap = new Map();
+    sessions.forEach((s) => {
+      const fid = s.faculty_id || s.faculty;
+      if (fid && fid !== 'Unassigned') {
+        const found = FACULTY.find((f) => f.id === fid);
+        facMap.set(fid, {
+          id: fid,
+          name: found ? found.name : `Faculty (${fid})`,
+          dept: found ? found.dept : 'Faculty',
+          designation: found ? found.designation : 'Professor',
+        });
+      }
+    });
+    if (facMap.size > 0) {
+      return Array.from(facMap.values()).sort((a, b) => a.id.localeCompare(b.id));
+    }
+    return FACULTY;
+  }, [sessions]);
+
+  const availableRooms = React.useMemo(() => {
+    const roomMap = new Map();
+    sessions.forEach((s) => {
+      const rid = s.room_id || s.room;
+      if (rid && rid !== 'TBD') {
+        const found = ROOMS.find((r) => r.id === rid);
+        roomMap.set(rid, {
+          id: rid,
+          name: found ? found.name : rid,
+          type: found ? found.type : 'Venue',
+          building: found ? found.building : 'Campus',
+          capacity: found ? found.capacity : 60,
+        });
+      }
+    });
+    if (roomMap.size > 0) {
+      return Array.from(roomMap.values()).sort((a, b) => a.id.localeCompare(b.id));
+    }
+    return ROOMS;
+  }, [sessions]);
+
+  useEffect(() => {
+    if (availableGroups.length > 0 && filterMode === 'group') {
+      const exists = availableGroups.some((g) => g.id === selectedEntityId);
+      if (!exists && selectedEntityId !== 'All') {
+        setSelectedEntityId(availableGroups[0].id);
+      }
+    }
+  }, [availableGroups, filterMode, selectedEntityId]);
 
   // Filter sessions based on mode
   const activeSessions = sessions.filter((s) => {
-    if (filterMode === 'group') return s.group === selectedEntityId || (s.groups && s.groups.includes(selectedEntityId));
-    if (filterMode === 'faculty') return s.faculty === selectedEntityId;
-    if (filterMode === 'room') return s.room === selectedEntityId;
+    if (selectedEntityId === 'All') return true;
+    if (filterMode === 'group') {
+      return s.group === selectedEntityId || (s.groups && s.groups.includes(selectedEntityId));
+    }
+    if (filterMode === 'faculty') {
+      return s.faculty === selectedEntityId || s.faculty_id === selectedEntityId;
+    }
+    if (filterMode === 'room') {
+      return s.room === selectedEntityId || s.room_id === selectedEntityId;
+    }
     return true;
   });
 
   const handleModeChange = (mode) => {
     setFilterMode(mode);
-    if (mode === 'group') setSelectedEntityId(STUDENT_GROUPS[0].id);
-    else if (mode === 'faculty') setSelectedEntityId(FACULTY[0].id);
-    else if (mode === 'room') setSelectedEntityId(ROOMS[0].id);
+    if (mode === 'group') setSelectedEntityId(availableGroups[0]?.id || 'Y1-A');
+    else if (mode === 'faculty') setSelectedEntityId(availableFaculty[0]?.id || 'F01');
+    else if (mode === 'room') setSelectedEntityId(availableRooms[0]?.id || 'LH-1');
   };
 
   const typeColorMap = {
@@ -149,20 +229,21 @@ export default function WeeklyTimetable() {
             onChange={(e) => setSelectedEntityId(e.target.value)}
             className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-slate-100 focus:outline-none"
           >
+            <option value="All">All {filterMode === 'group' ? 'Cohorts' : filterMode === 'faculty' ? 'Faculty Members' : 'Venues'} (Campus Master View)</option>
             {filterMode === 'group' &&
-              STUDENT_GROUPS.map((g) => (
+              availableGroups.map((g) => (
                 <option key={g.id} value={g.id}>
-                  {g.name} ({g.dept}, Sem {g.semester})
+                  {g.name} ({g.dept || 'COMMON'})
                 </option>
               ))}
             {filterMode === 'faculty' &&
-              FACULTY.map((f) => (
+              availableFaculty.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name} ({f.dept} — {f.designation})
                 </option>
               ))}
             {filterMode === 'room' &&
-              ROOMS.map((r) => (
+              availableRooms.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name} ({r.type}, {r.capacity} seats) — {r.building}
                 </option>
@@ -177,8 +258,8 @@ export default function WeeklyTimetable() {
           <table className="w-full text-left border-collapse min-w-[760px]">
             <thead>
               <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
-                <th className="p-3 w-24 text-center border-r border-slate-800">
-                  Timeslot
+                <th className="p-3 w-28 text-center border-r border-slate-800">
+                  Period / Slot
                 </th>
                 {days.map((day) => (
                   <th key={day} className="p-3 text-center border-r border-slate-800 last:border-r-0">
@@ -188,24 +269,56 @@ export default function WeeklyTimetable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-xs">
-              {timeSlots.map((slot) => {
-                const nextHour = `${String(parseInt(slot.split(':')[0], 10) + 1).padStart(2, '0')}:00`;
-
+              {periods.map((p) => {
                 return (
-                  <tr key={slot} className="hover:bg-slate-800/30 transition-colors">
-                    {/* Timeslot label */}
+                  <tr key={p.period} className="hover:bg-slate-800/30 transition-colors">
+                    {/* Period label */}
                     <td className="p-2.5 text-center font-mono text-[11px] text-slate-400 bg-slate-900/60 border-r border-slate-800">
-                      <div>{slot}</div>
-                      <div className="text-[9px] text-slate-600">{nextHour}</div>
+                      <div className="font-bold text-slate-200">{p.label}</div>
+                      <div className="text-[10px] text-slate-500">{p.time}</div>
                     </td>
 
                     {/* Day Cells */}
                     {days.map((day) => {
-                      const session = activeSessions.find(
-                        (s) => s.day === day && s.startTime === slot
-                      );
+                      const dayAbbr = {
+                        Monday: 'MON',
+                        Tuesday: 'TUE',
+                        Wednesday: 'WED',
+                        Thursday: 'THU',
+                        Friday: 'FRI',
+                      }[day];
 
-                      if (!session) {
+                      const sessionStartingHere = activeSessions.find((s) => {
+                        const matchesDay = s.day === day || s.dayAbbr === dayAbbr || s.day === dayAbbr;
+                        if (!matchesDay) return false;
+                        const startP = Number(s.start_period || 1);
+                        return startP === p.period;
+                      });
+
+                      const sessionContinuingHere = !sessionStartingHere && activeSessions.find((s) => {
+                        const matchesDay = s.day === day || s.dayAbbr === dayAbbr || s.day === dayAbbr;
+                        if (!matchesDay) return false;
+                        const startP = Number(s.start_period || 1);
+                        const dur = Number(s.duration || 1);
+                        return dur > 1 && p.period > startP && p.period <= (startP + dur - 1);
+                      });
+
+                      if (sessionContinuingHere) {
+                        return (
+                          <td
+                            key={day}
+                            className="p-1.5 border-r border-slate-800 last:border-r-0 align-middle text-center bg-indigo-950/20"
+                          >
+                            <div className="text-[10px] text-indigo-300/80 font-mono italic flex items-center justify-center gap-1">
+                              <span>↳</span>
+                              <span className="font-semibold">{sessionContinuingHere.course}</span>
+                              <span className="opacity-75">Lab (cont.)</span>
+                            </div>
+                          </td>
+                        );
+                      }
+
+                      if (!sessionStartingHere) {
                         return (
                           <td
                             key={day}
@@ -216,8 +329,9 @@ export default function WeeklyTimetable() {
                         );
                       }
 
-                      const course = COURSES.find((c) => c.id === session.course);
-                      const faculty = FACULTY.find((f) => f.id === session.faculty);
+                      const session = sessionStartingHere;
+                      const course = COURSES.find((c) => c.id === session.course || c.id === session.course_id);
+                      const faculty = FACULTY.find((f) => f.id === session.faculty || f.id === session.faculty_id);
 
                       return (
                         <td
@@ -231,18 +345,19 @@ export default function WeeklyTimetable() {
                             }`}
                           >
                             <div className="flex items-center justify-between font-bold text-xs">
-                              <span>{session.course}</span>
-                              <span className="text-[9px] uppercase tracking-wide opacity-80">
+                              <span className="text-white">{session.course || session.course_id}</span>
+                              <span className="text-[9px] uppercase tracking-wide opacity-80 px-1 py-0.5 rounded bg-black/30">
                                 {session.type}
+                                {session.duration > 1 && ` • ${session.duration}h`}
                               </span>
                             </div>
-                            <div className="text-[10px] truncate opacity-90">
-                              {course?.name}
+                            <div className="text-[10px] truncate opacity-90 text-slate-300">
+                              {course?.name || session.name || session.id}
                             </div>
                             <div className="text-[9px] flex items-center justify-between pt-1 border-t border-current/20 font-mono">
-                              <span>{session.room}</span>
-                              <span className="truncate max-w-[60px]">
-                                {faculty?.name?.split(' ')[1] || session.faculty}
+                              <span className="font-semibold text-cyan-300">{session.room || session.room_id}</span>
+                              <span className="truncate max-w-[80px] text-slate-300">
+                                {faculty?.name?.split(' ')[1] || session.faculty || session.faculty_id}
                               </span>
                             </div>
                           </div>
