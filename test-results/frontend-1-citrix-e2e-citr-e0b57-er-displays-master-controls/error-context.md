@@ -1,0 +1,224 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: frontend-1\citrix\e2e\citrix-acceptance.spec.js >> CITRIX Phase 5E Acceptance Test Suite >> Scenario 7: Admin command center displays master controls
+- Location: frontend-1\citrix\e2e\citrix-acceptance.spec.js:101:3
+
+# Error details
+
+```
+Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
+Call log:
+  - navigating to "/login", waiting until "load"
+
+```
+
+# Test source
+
+```ts
+  2   | import { test, expect } from '@playwright/test';
+  3   | 
+  4   | test.describe('CITRIX Phase 5E Acceptance Test Suite', () => {
+  5   |   // Scenario 10: Direct URL navigation without session redirects to /login
+  6   |   test('Scenario 10: Unauthenticated access redirects to /login', async ({ page }) => {
+  7   |     await page.goto('/admin');
+  8   |     await expect(page).toHaveURL(/\/login/);
+  9   | 
+  10  |     await page.goto('/student');
+  11  |     await expect(page).toHaveURL(/\/login/);
+  12  | 
+  13  |     await page.goto('/campus');
+  14  |     await expect(page).toHaveURL(/\/login/);
+  15  |   });
+  16  | 
+  17  |   // Scenario 1 & 2: Login as each of the 5 roles and verify landing page
+  18  |   const roles = [
+  19  |     { name: 'Dr. Pramod Mishra', role: 'admin', expectedUrl: '/admin' },
+  20  |     { name: 'Dr. Priya Sharma', role: 'coordinator', expectedUrl: '/coordinator' },
+  21  |     { name: 'Dr. Rajesh Kumar', role: 'faculty', expectedUrl: '/faculty' },
+  22  |     { name: 'Aryan Mehta', role: 'club', expectedUrl: '/club' },
+  23  |     { name: 'Rahul Sharma', role: 'student', expectedUrl: '/student' },
+  24  |   ];
+  25  | 
+  26  |   for (const item of roles) {
+  27  |     test(`Scenario 1 & 2: Login as ${item.role} lands on ${item.expectedUrl}`, async ({ page }) => {
+  28  |       await page.goto('/login');
+  29  |       // Click persona card
+  30  |       const personaCard = page.locator(`text=${item.name}`).first();
+  31  |       await expect(personaCard).toBeVisible();
+  32  |       await personaCard.click();
+  33  | 
+  34  |       // Verify landing page
+  35  |       await expect(page).toHaveURL(new RegExp(item.expectedUrl));
+  36  |     });
+  37  |   }
+  38  | 
+  39  |   // Scenario 3: Verify role-appropriate navigation items
+  40  |   test('Scenario 3: Student sees only student-appropriate navigation', async ({ page }) => {
+  41  |     await page.goto('/login');
+  42  |     await page.locator('text=Rahul Sharma').first().click();
+  43  |     await expect(page).toHaveURL(/\/student/);
+  44  | 
+  45  |     // Verify student items are present
+  46  |     await expect(page.locator('text=My Dashboard').first()).toBeVisible();
+  47  |     await expect(page.locator('text=My Timetable').first()).toBeVisible();
+  48  |     await expect(page.locator('text=Examinations').first()).toBeVisible();
+  49  |     await expect(page.locator('text=3D Campus Map').first()).toBeVisible();
+  50  |     await expect(page.locator('text=AI Campus Assistant').first()).toBeVisible();
+  51  | 
+  52  |     // Verify administrative/club items are NOT present
+  53  |     await expect(page.locator('text=Generate Timetable')).not.toBeVisible();
+  54  |     await expect(page.locator('text=Approvals Queue')).not.toBeVisible();
+  55  |     await expect(page.locator('text=Disruptions & Repair')).not.toBeVisible();
+  56  |     await expect(page.locator('text=Smart AI Booking (NL)')).not.toBeVisible();
+  57  |   });
+  58  | 
+  59  |   // Scenario 4: Verify unauthorized page access redirects correctly via RoleGuard
+  60  |   test('Scenario 4: Unauthorized route access redirects to role home dashboard', async ({ page }) => {
+  61  |     // Login as Student
+  62  |     await page.goto('/login');
+  63  |     await page.locator('text=Rahul Sharma').first().click();
+  64  |     await expect(page).toHaveURL(/\/student/);
+  65  | 
+  66  |     // Attempt direct navigation to Admin route
+  67  |     await page.goto('/admin');
+  68  |     await expect(page).toHaveURL(/\/student/);
+  69  | 
+  70  |     // Attempt direct navigation to Coordinator route
+  71  |     await page.goto('/coordinator');
+  72  |     await expect(page).toHaveURL(/\/student/);
+  73  | 
+  74  |     // Attempt direct navigation to Approvals
+  75  |     await page.goto('/approvals');
+  76  |     await expect(page).toHaveURL(/\/student/);
+  77  |   });
+  78  | 
+  79  |   // Scenario 5: Student dashboard displays real cohort data
+  80  |   test('Scenario 5: Student dashboard displays cohort information', async ({ page }) => {
+  81  |     await page.goto('/login');
+  82  |     await page.locator('text=Rahul Sharma').first().click();
+  83  |     await expect(page).toHaveURL(/\/student/);
+  84  | 
+  85  |     // Verify student header and cohort badge
+  86  |     await expect(page.locator('text=Welcome, Rahul Sharma')).toBeVisible();
+  87  |     await expect(page.locator('text=STUDENT PORTAL').first()).toBeVisible();
+  88  |   });
+  89  | 
+  90  |   // Scenario 6: Student timetable shows scheduled classes
+  91  |   test('Scenario 6: Student timetable view displays timetable navigation', async ({ page }) => {
+  92  |     await page.goto('/login');
+  93  |     await page.locator('text=Rahul Sharma').first().click();
+  94  |     await expect(page).toHaveURL(/\/student/);
+  95  | 
+  96  |     await page.goto('/timetable/weekly');
+  97  |     await expect(page).toHaveURL(/\/timetable\/weekly/);
+  98  |   });
+  99  | 
+  100 |   // Scenario 7: Admin sees administrative controls
+  101 |   test('Scenario 7: Admin command center displays master controls', async ({ page }) => {
+> 102 |     await page.goto('/login');
+      |                ^ Error: page.goto: Protocol error (Page.navigate): Cannot navigate to invalid URL
+  103 |     await page.locator('text=Dr. Pramod Mishra').first().click();
+  104 |     await expect(page).toHaveURL(/\/admin/);
+  105 | 
+  106 |     await expect(page.locator('text=Institutional Command Center')).toBeVisible();
+  107 |     await expect(page.locator('text=Generate Weekly Timetable').first()).toBeVisible();
+  108 |   });
+  109 | 
+  110 |   // Scenario 8: Logout works and clears session
+  111 |   test('Scenario 8: Logout clears session and redirects to login', async ({ page }) => {
+  112 |     await page.goto('/login');
+  113 |     await page.locator('text=Dr. Pramod Mishra').first().click();
+  114 |     await expect(page).toHaveURL(/\/admin/);
+  115 | 
+  116 |     // Click Sign Out
+  117 |     const logoutBtn = page.locator('button[title="Sign out"]').first();
+  118 |     await logoutBtn.click();
+  119 |     await expect(page).toHaveURL(/\/login/);
+  120 | 
+  121 |     // Verify direct navigation back to /admin now fails
+  122 |     await page.goto('/admin');
+  123 |     await expect(page).toHaveURL(/\/login/);
+  124 |   });
+  125 | 
+  126 |   // Scenario 9: Direct URL navigation with valid session works
+  127 |   test('Scenario 9: Direct URL navigation with valid session', async ({ page }) => {
+  128 |     await page.goto('/login');
+  129 |     await page.locator('text=Dr. Priya Sharma').first().click();
+  130 |     await expect(page).toHaveURL(/\/coordinator/);
+  131 | 
+  132 |     // Direct navigate to shared campus view
+  133 |     await page.goto('/campus');
+  134 |     await expect(page).toHaveURL(/\/campus/);
+  135 |   });
+  136 | 
+  137 |   // Scenario 11: Manual Campus Venue Reservation submits successfully
+  138 |   test('Scenario 11: Manual Campus Venue Reservation submits successfully', async ({ page }) => {
+  139 |     await page.goto('/login');
+  140 |     await page.locator('text=Aryan Mehta').first().click();
+  141 |     await expect(page).toHaveURL(/\/club/);
+  142 | 
+  143 |     await page.goto('/bookings/new');
+  144 |     await expect(page).toHaveURL(/\/bookings\/new/);
+  145 |     await expect(page.locator('text=Manual Campus Venue Reservation')).toBeVisible();
+  146 | 
+  147 |     await page.locator('input[placeholder*="Extra Lecture"]').fill('Robotics Annual Tech Showcase');
+  148 |     await page.locator('textarea[placeholder*="curriculum"]').fill('Robotics club demonstration of autonomous drones');
+  149 | 
+  150 |     await page.locator('button:has-text("Submit Reservation")').click();
+  151 | 
+  152 |     await expect(page).toHaveURL(/\/bookings/);
+  153 |     await expect(page.locator('text=Robotics Annual Tech Showcase').first()).toBeVisible();
+  154 |   });
+  155 | 
+  156 |   // Scenario 12: Faculty demo login opens Faculty Workspace without rendering error
+  157 |   test('Scenario 12: Faculty demo login opens Faculty Workspace smoothly', async ({ page }) => {
+  158 |     await page.goto('/login');
+  159 |     await page.locator('text=Dr. Rajesh Kumar').first().click();
+  160 |     await expect(page).toHaveURL(/\/faculty/);
+  161 | 
+  162 |     await expect(page.locator('text=/Faculty Workspace:/').first()).toBeVisible();
+  163 |     await expect(page.locator('text=FACULTY PORTAL').first()).toBeVisible();
+  164 |     await expect(page.locator('text=My Teaching Sessions Roster').first()).toBeVisible();
+  165 |   });
+  166 | 
+  167 |   // Scenario 13: Manual Sign In with credentials works
+  168 |   test('Scenario 13: Manual Sign In tab authenticates user', async ({ page }) => {
+  169 |     await page.goto('/login');
+  170 | 
+  171 |     // Make sure we are on Sign In tab using exact name
+  172 |     await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+  173 | 
+  174 |     // Fill credentials
+  175 |     await page.locator('input[placeholder*="dean@cit.edu"]').fill('dean@cit.edu');
+  176 |     await page.locator('input[placeholder="••••••••••••"]').fill('password123');
+  177 | 
+  178 |     await page.locator('button:has-text("Sign In to Platform")').click();
+  179 |     await expect(page).toHaveURL(/\/admin/);
+  180 |     await expect(page.locator('text=Institutional Command Center')).toBeVisible();
+  181 |   });
+  182 | 
+  183 |   // Scenario 14: Create Account / Sign Up tab creates account and accesses workspace
+  184 |   test('Scenario 14: Create Account tab registers and enters dashboard', async ({ page }) => {
+  185 |     await page.goto('/login');
+  186 | 
+  187 |     // Switch to Create Account tab
+  188 |     await page.locator('button:has-text("Create Account")').click();
+  189 | 
+  190 |     // Fill signup form
+  191 |     await page.locator('input[placeholder*="Dr. Ananya Das"]').fill('Neha Sharma');
+  192 |     await page.locator('input[placeholder*="ananya.das@cit.edu"]').fill('neha.sharma@cit.edu');
+  193 |     await page.locator('input[placeholder="Minimum 6 characters"]').fill('citrix2026');
+  194 | 
+  195 |     await page.locator('button:has-text("Register & Access Workspace")').click();
+  196 |     await expect(page).toHaveURL(/\/student/);
+  197 |     await expect(page.locator('text=STUDENT PORTAL').first()).toBeVisible();
+  198 |   });
+  199 | });
+  200 | 
+```

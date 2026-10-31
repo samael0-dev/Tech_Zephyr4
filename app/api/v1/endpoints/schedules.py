@@ -41,7 +41,7 @@ def generate_schedule(
         db=db,
         user=current_user,
         dataset_id=gen_req.dataset_id,
-        time_limit_seconds=min(gen_req.solver_timeout_seconds or 30.0, 30.0),
+        time_limit_seconds=max(gen_req.solver_timeout_seconds or 30.0, 30.0),
         client_ip=client_ip,
     )
 
@@ -126,6 +126,41 @@ def list_schedule_versions(
     )
 
 
+@router.get("/export", response_model=ApiResponse[Dict[str, Any]])
+def export_schedule_endpoint(
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Exports the authoritative schedule.json document structure matching validator.py format.
+    """
+    export_doc = build_schedule_export(db)
+    return ApiResponse(
+        success=True,
+        data=export_doc,
+        message="Schedule exported successfully in official validator format",
+    )
+
+
+@router.post("/validate", response_model=ApiResponse[Dict[str, Any]])
+def validate_schedule_endpoint(
+    custom_schedule: Optional[Dict[str, Any]] = None,
+    current_user: CurrentUser = Depends(require_permission(Permission.TIMETABLE_VALIDATE)),
+    db: Session = Depends(get_db),
+):
+    """
+    Runs the authoritative central validator on current active schedule or custom payload.
+    """
+    sched_payload = custom_schedule or build_schedule_export(db)
+    validation_res = validate_academic_timetable(sched_payload)
+
+    return ApiResponse(
+        success=True,
+        data=validation_res.to_dict(),
+        message="Validation executed against central validator",
+    )
+
+
 @router.get("/{schedule_id}", response_model=ApiResponse[ScheduleResponse])
 def get_schedule(
     schedule_id: str,
@@ -159,23 +194,4 @@ def get_schedule(
             sessions_count=sess_count,
         ),
         message="Schedule retrieved successfully",
-    )
-
-
-@router.post("/validate", response_model=ApiResponse[Dict[str, Any]])
-def validate_schedule_endpoint(
-    custom_schedule: Optional[Dict[str, Any]] = None,
-    current_user: CurrentUser = Depends(require_permission(Permission.TIMETABLE_VALIDATE)),
-    db: Session = Depends(get_db),
-):
-    """
-    Runs the authoritative central validator on current active schedule or custom payload.
-    """
-    sched_payload = custom_schedule or build_schedule_export(db)
-    validation_res = validate_academic_timetable(sched_payload)
-
-    return ApiResponse(
-        success=True,
-        data=validation_res.to_dict(),
-        message="Validation executed against central validator",
     )

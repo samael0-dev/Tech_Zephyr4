@@ -128,10 +128,11 @@ export const timetableService = {
 
   exportTimetable: async (format = 'json') => {
     try {
-      const data = await apiClient.get('/timetable');
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const resp = await apiClient.get('/schedules/export');
+      const payload = resp?.data || resp;
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      return { data: { url, format, demo: false } };
+      return { data: { url, format, payload, demo: false } };
     } catch (err) {
       console.error('Real export timetable error:', err.message);
       throw err;

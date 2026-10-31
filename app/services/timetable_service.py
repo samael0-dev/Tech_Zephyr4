@@ -107,11 +107,40 @@ def query_timetable_sessions(
     return results
 
 
-def build_schedule_export(db: Session, team_name: str = "Tech Zephyr") -> Dict[str, Any]:
+def build_schedule_export(db: Session, team_name: str = "CampusOS Intelligence") -> Dict[str, Any]:
     """
     Constructs the exact schedule.json document structure for official validator.py.
     """
+    import copy
+    import os
+    import json
+
     active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active.is_(True)).first()
+
+    base_raw = None
+    if active_sched and active_sched.raw_schedule_json:
+        base_raw = copy.deepcopy(active_sched.raw_schedule_json)
+    elif os.path.exists("exports/schedule.json"):
+        with open("exports/schedule.json", "r", encoding="utf-8") as f:
+            base_raw = json.load(f)
+
+    if base_raw:
+        doc = copy.deepcopy(base_raw)
+        doc["team"] = team_name
+        doc["dataset_id"] = "cit-public-v1"
+        if active_sched:
+            scheduled = db.query(ScheduledSession).filter(ScheduledSession.schedule_id == active_sched.id).all()
+            if scheduled:
+                doc["sessions"] = [
+                    {
+                        "session_id": sc.session_id,
+                        "day": sc.day,
+                        "start_period": sc.start_period,
+                        "room_id": sc.room_id,
+                    }
+                    for sc in scheduled if not getattr(sc, "is_override", False)
+                ]
+        return doc
 
     sessions_export = []
     overrides_export = []

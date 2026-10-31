@@ -21,6 +21,7 @@ class SolverOptions:
     soft_weights: Optional[Dict[str, int]] = None
     random_seed: int = 42
     log_search_progress: bool = False
+    hint_assignments: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -66,6 +67,18 @@ def generate_timetable(
     # Objective
     if options.optimize_soft:
         add_soft_objectives(model, ctx, vars, weights=options.soft_weights)
+
+    # Warm start / solution hints
+    if options.hint_assignments:
+        for sid, slot in options.hint_assignments.items():
+            if isinstance(slot, (list, tuple)) and len(slot) >= 3:
+                day, period, room = slot[0], slot[1], slot[2]
+                if (sid, day, period, room) in vars.x:
+                    model.AddHint(vars.x[(sid, day, period, room)], 1)
+            elif isinstance(slot, dict):
+                day, period, room = slot.get("day"), slot.get("start_period"), slot.get("room_id")
+                if (sid, day, period, room) in vars.x:
+                    model.AddHint(vars.x[(sid, day, period, room)], 1)
 
     # Solver configuration
     solver = cp_model.CpSolver()
