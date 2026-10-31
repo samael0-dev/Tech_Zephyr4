@@ -95,6 +95,20 @@ export const FACULTY = [
 ];
 
 export const STUDENT_GROUPS = [
+  { id: 'Y1-A', name: 'B.Tech Year 1, Section A', dept: 'COMMON', semester: 1, year: 1, strength: 90 },
+  { id: 'Y1-B', name: 'B.Tech Year 1, Section B', dept: 'COMMON', semester: 1, year: 1, strength: 90 },
+  { id: 'Y1-C', name: 'B.Tech Year 1, Section C', dept: 'COMMON', semester: 1, year: 1, strength: 90 },
+  { id: 'Y1-D', name: 'B.Tech Year 1, Section D', dept: 'COMMON', semester: 1, year: 1, strength: 90 },
+  { id: 'CSE-2', name: 'CSE Year 2', dept: 'CSE', semester: 3, year: 2, strength: 80 },
+  { id: 'ECE-2', name: 'ECE Year 2', dept: 'ECE', semester: 3, year: 2, strength: 70 },
+  { id: 'EE-2', name: 'EE Year 2', dept: 'EE', semester: 3, year: 2, strength: 60 },
+  { id: 'ME-2', name: 'ME Year 2', dept: 'ME', semester: 3, year: 2, strength: 60 },
+  { id: 'CE-2', name: 'CE Year 2', dept: 'CE', semester: 3, year: 2, strength: 50 },
+  { id: 'CSE-3', name: 'CSE Year 3', dept: 'CSE', semester: 5, year: 3, strength: 75 },
+  { id: 'ECE-3', name: 'ECE Year 3', dept: 'ECE', semester: 5, year: 3, strength: 65 },
+  { id: 'EE-3', name: 'EE Year 3', dept: 'EE', semester: 5, year: 3, strength: 55 },
+  { id: 'ME-3', name: 'ME Year 3', dept: 'ME', semester: 5, year: 3, strength: 55 },
+  { id: 'CE-3', name: 'CE Year 3', dept: 'CE', semester: 5, year: 3, strength: 45 },
   { id: 'CSE-A1', name: 'CSE A (Sem 1)', dept: 'CSE', semester: 1, strength: 60, section: 'A' },
   { id: 'CSE-A2', name: 'CSE B (Sem 1)', dept: 'CSE', semester: 1, strength: 58, section: 'B' },
   { id: 'CSE-A3', name: 'CSE A (Sem 3)', dept: 'CSE', semester: 3, strength: 55, section: 'A' },

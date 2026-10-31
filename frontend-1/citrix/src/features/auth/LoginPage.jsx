@@ -438,13 +438,19 @@ export default function LoginPage() {
                   <label className="text-xs text-slate-300 font-semibold">Campus Role</label>
                   <select
                     value={signupRole}
-                    onChange={(e) => setSignupRole(e.target.value)}
+                    onChange={(e) => {
+                      setSignupRole(e.target.value);
+                      if (e.target.value === 'admin' && signupDept === 'CSE') {
+                        setSignupDept('ADMIN');
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   >
-                    <option value="student">Student</option>
+                    <option value="admin">Dean / Academic Affairs (Admin)</option>
+                    <option value="coordinator">Department Coordinator</option>
                     <option value="faculty">Faculty Member</option>
                     <option value="club">Club Representative</option>
-                    <option value="coordinator">Department Coordinator</option>
+                    <option value="student">Student</option>
                   </select>
                 </div>
 

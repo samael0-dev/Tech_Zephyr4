@@ -96,10 +96,11 @@ export const spectraService = {
 
   rejectEvent: async (id, reason = 'Scheduling conflict', alternativeRoom = null) => {
     try {
+      const reasonText = reason + (alternativeRoom ? ` (Suggested alternative: ${alternativeRoom})` : '');
       const payload = {
-        decision: alternativeRoom ? 'alternative_offered' : 'rejected',
-        reason: reason || 'Scheduling conflict during fest week',
-        room_id: alternativeRoom || null,
+        decision: 'rejected',
+        reason: reasonText,
+        room_id: null,
       };
       const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeSpectraEvent(data), demo: false };

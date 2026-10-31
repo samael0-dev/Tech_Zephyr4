@@ -32,6 +32,45 @@ export default function CoordinatorDashboard() {
   const toast = useToast();
   const [deptData, setDeptData] = useState(null);
 
+  const [labRequests, setLabRequests] = useState([
+    {
+      id: 'REQ-ROBOTICS-01',
+      title: 'Robotics Club Workshop',
+      room: 'CS Lab 3',
+      details: 'Nov 8, 10:00 - 13:00 • 40 Workstations requested',
+      status: 'pending',
+      requestedBy: 'Robotics Club',
+    },
+    {
+      id: 'REQ-AI-02',
+      title: 'ACM AI/ML Hackathon Prep',
+      room: 'CS Lab 1',
+      details: 'Nov 9, 14:00 - 17:00 • 35 Workstations requested',
+      status: 'pending',
+      requestedBy: 'ACM Student Chapter',
+    },
+  ]);
+
+  const handleApproveRequest = (id) => {
+    setLabRequests((prev) =>
+      prev.map((req) => (req.id === id ? { ...req, status: 'approved' } : req))
+    );
+    toast.success('Lab access request approved! Venue confirmed.');
+  };
+
+  const handleRejectRequest = (id) => {
+    setLabRequests((prev) =>
+      prev.map((req) => (req.id === id ? { ...req, status: 'rejected' } : req))
+    );
+    toast.info('Lab access request rejected.');
+  };
+
+  const handleResetRequest = (id) => {
+    setLabRequests((prev) =>
+      prev.map((req) => (req.id === id ? { ...req, status: 'pending' } : req))
+    );
+  };
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -202,33 +241,84 @@ export default function CoordinatorDashboard() {
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-900 rounded-xl border border-slate-700/60 space-y-2">
-                <div className="flex items-start justify-between">
-                  <div className="font-bold text-slate-100">Robotics Club Workshop</div>
-                  <Badge variant="amber" size="sm">CS Lab 3</Badge>
+              {labRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className={`p-3 rounded-xl border transition-all ${
+                    req.status === 'approved'
+                      ? 'bg-emerald-950/20 border-emerald-500/40'
+                      : req.status === 'rejected'
+                      ? 'bg-rose-950/20 border-rose-500/40 opacity-75'
+                      : 'bg-slate-900 border-slate-700/60'
+                  } space-y-2`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-bold text-slate-100">{req.title}</div>
+                    <Badge
+                      variant={
+                        req.status === 'approved'
+                          ? 'green'
+                          : req.status === 'rejected'
+                          ? 'red'
+                          : 'amber'
+                      }
+                      size="sm"
+                    >
+                      {req.room}
+                    </Badge>
+                  </div>
+                  <p className="text-slate-400 text-[11px]">{req.details}</p>
+
+                  {req.status === 'pending' ? (
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        variant="emerald"
+                        size="sm"
+                        className="flex-1 text-[11px] py-1"
+                        onClick={() => handleApproveRequest(req.id)}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        className="flex-1 text-[11px] py-1"
+                        onClick={() => handleRejectRequest(req.id)}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  ) : req.status === 'approved' ? (
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Approved • Lab Allocated
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleResetRequest(req.id)}
+                        className="text-[10px] text-slate-400 hover:text-slate-200 underline"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-rose-400 font-semibold flex items-center gap-1">
+                        <XCircle className="w-3.5 h-3.5" />
+                        Rejected
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleResetRequest(req.id)}
+                        className="text-[10px] text-slate-400 hover:text-slate-200 underline"
+                      >
+                        Reconsider
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <p className="text-slate-400 text-[11px]">
-                  Nov 8, 10:00 - 13:00 • 40 Workstations requested
-                </p>
-                <div className="flex items-center gap-2 pt-1">
-                  <Button
-                    variant="emerald"
-                    size="sm"
-                    className="flex-1 text-[11px] py-1"
-                    onClick={() => toast.success('CS Lab 3 request approved')}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="flex-1 text-[11px] py-1"
-                    onClick={() => toast.info('Request rejected')}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
+              ))}
             </div>
           </Card>
 

@@ -177,13 +177,16 @@ export const bookingService = {
   rejectBooking: async (id, reason, alternative = null) => {
     try {
       const alt = typeof alternative === 'string' ? { room_id: alternative } : (alternative || {});
+      const hasFullAlternative = Boolean(alt.room_id && alt.day && alt.start_period && alt.end_period);
+      const reasonText = (reason || 'Booking request rejected due to scheduling conflict') + 
+        (!hasFullAlternative && alt.room_id ? ` (Suggested alternative: ${alt.room_id})` : '');
       const payload = {
-        decision: (alt.room_id || alt.day) ? 'alternative_offered' : 'rejected',
-        reason: reason || 'Booking request rejected due to scheduling conflict',
-        room_id: alt.room_id || null,
-        day: alt.day || null,
-        start_period: alt.start_period ? Number(alt.start_period) : null,
-        end_period: alt.end_period ? Number(alt.end_period) : null,
+        decision: hasFullAlternative ? 'alternative_offered' : 'rejected',
+        reason: reasonText,
+        room_id: hasFullAlternative ? alt.room_id : null,
+        day: hasFullAlternative ? alt.day : null,
+        start_period: hasFullAlternative ? Number(alt.start_period) : null,
+        end_period: hasFullAlternative ? Number(alt.end_period) : null,
       };
       const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeBooking(data), demo: false };

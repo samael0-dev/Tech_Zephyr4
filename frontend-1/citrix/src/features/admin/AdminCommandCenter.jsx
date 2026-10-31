@@ -99,8 +99,9 @@ export default function AdminCommandCenter() {
 
   const handleQuickApprove = async (id, title) => {
     const item = livePendingRequests.find((r) => r.id === id) || bookings.find((b) => b.id === id);
+    const room = (item?.attendance && item.attendance > 150) ? 'AUD' : (item?.requested_room || 'LH-1');
     const placement = {
-      room_id: item?.requested_room || 'L-101',
+      room_id: room,
       day: 'MON',
       start_period: 6,
       end_period: 7,
@@ -117,8 +118,8 @@ export default function AdminCommandCenter() {
 
   const handleQuickReject = async (id, title) => {
     try {
-      await rejectBooking(id, 'Resource prioritised for academic exams', 'SH-2');
-      toast.info(`Booking "${title}" rejected. Alternative venue suggested.`);
+      await rejectBooking(id, 'Resource prioritised for academic schedule');
+      toast.info(`Booking "${title}" rejected.`);
       setLivePendingRequests((prev) => prev.filter((r) => r.id !== id));
     } catch (e) {
       toast.error(e.message || 'Rejection failed');
