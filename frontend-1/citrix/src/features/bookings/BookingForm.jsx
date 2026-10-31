@@ -1,7 +1,8 @@
 // src/features/bookings/BookingForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ROOMS } from '@/data/demoData';
+import { roomService } from '@/services/roomService';
 import { useBookingStore } from '@/store/bookingStore';
 import { useAuthStore } from '@/store/authStore';
 import {
@@ -21,11 +22,13 @@ export default function BookingForm() {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();
-  const initialRoom = searchParams.get('room') || 'A101';
+  const initialRoom = searchParams.get('room') || 'CR-101';
 
   const { user } = useAuthStore();
   const { submitBooking } = useBookingStore();
 
+  const [rooms, setRooms] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [title, setTitle] = useState('');
   const [room, setRoom] = useState(initialRoom);
   const [date, setDate] = useState('2026-11-09');
@@ -35,7 +38,34 @@ export default function BookingForm() {
   const [purpose, setPurpose] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const selectedRoomObj = ROOMS.find((r) => r.id === room);
+  useEffect(() => {
+    let mounted = true;
+    async function loadRooms() {
+      try {
+        const res = await roomService.getRooms();
+        if (mounted && res?.data?.length > 0) {
+          setRooms(res.data);
+          const found = res.data.find((r) => r.id === initialRoom);
+          if (found) {
+            setRoom(found.id);
+          } else if (res.data[0]) {
+            setRoom(res.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load live rooms, using fallback:', err);
+      } finally {
+        if (mounted) setLoadingRooms(false);
+      }
+    }
+    loadRooms();
+    return () => {
+      mounted = false;
+    };
+  }, [initialRoom]);
+
+  const displayRooms = rooms.length > 0 ? rooms : ROOMS;
+  const selectedRoomObj = displayRooms.find((r) => r.id === room) || displayRooms[0];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,25 +73,46 @@ export default function BookingForm() {
       toast.error('Please enter an event title');
       return;
     }
+    const numAttendees = Number(attendees);
+    if (isNaN(numAttendees) || numAttendees <= 0) {
+      toast.error('Estimated attendees must be a positive number');
+      return;
+    }
     setSubmitting(true);
 
     try {
+      const userRole = user?.role || user?.rawRole || 'faculty';
+      const category =
+        userRole === 'admin'
+          ? 'institute_event'
+          : userRole === 'coordinator' || userRole === 'department_coordinator'
+          ? 'department_event'
+          : userRole === 'faculty'
+          ? 'guest_lecture'
+          : 'club_event';
+
       await submitBooking({
-        title,
-        room,
+        title: title.trim(),
+        room: selectedRoomObj?.id || room,
         date,
         startTime,
         endTime,
-        attendees: Number(attendees),
+        attendees: numAttendees,
+        attendance: numAttendees,
         purpose: purpose || 'Academic / Club Session',
-        requestedBy: user?.role || 'faculty',
+        requestedBy: user?.name || userRole,
+        category,
+        requested_category: category,
+        roomType: selectedRoomObj?.type ? selectedRoomObj.type.toLowerCase().replace(/\s+/g, '_') : 'classroom',
+        room_types: selectedRoomObj?.type ? [selectedRoomObj.type.toLowerCase().replace(/\s+/g, '_')] : ['classroom'],
         type: 'manual',
       });
 
       toast.success('Venue booking submitted for Dean’s Office approval!');
       navigate('/bookings');
     } catch (err) {
-      toast.error('Failed to submit booking');
+      const msg = err?.message || 'Failed to submit booking';
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -95,11 +146,12 @@ export default function BookingForm() {
               <select
                 value={room}
                 onChange={(e) => setRoom(e.target.value)}
+                disabled={loadingRooms && rooms.length === 0}
                 className="w-full p-2.5 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-100 text-xs focus:outline-none"
               >
-                {ROOMS.map((r) => (
+                {displayRooms.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name} ({r.type}, {r.capacity} seats) — {r.building}
+                    {r.name || r.id} ({r.type || 'Room'}, {r.capacity} seats) — {r.building || 'Campus'}
                   </option>
                 ))}
               </select>

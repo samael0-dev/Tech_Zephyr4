@@ -1,6 +1,45 @@
 // src/services/bookingService.js
 import { apiClient } from './apiClient';
 
+function dateToDayOfWeek(dateStr) {
+  if (!dateStr) return 'MON';
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const dayIdx = isNaN(d.getDay()) ? 1 : d.getDay();
+  const mapped = days[dayIdx];
+  return mapped === 'SUN' || mapped === 'SAT' ? 'MON' : mapped;
+}
+
+function timeRangeToPeriods(startTime, endTime) {
+  const parseHour = (t) => {
+    if (!t) return 14;
+    const parts = String(t).split(':');
+    return parseInt(parts[0], 10) || 14;
+  };
+
+  const hourToPeriod = (h) => {
+    if (h < 9) return 1;
+    if (h === 9) return 2;
+    if (h === 10) return 3;
+    if (h === 11) return 4;
+    if (h === 12) return 5;
+    if (h === 13) return 6;
+    if (h === 14) return 6;
+    if (h === 15) return 7;
+    if (h === 16) return 8;
+    return 9;
+  };
+
+  const startH = parseHour(startTime);
+  const endH = parseHour(endTime);
+  const fromPeriod = hourToPeriod(startH);
+  const rawDuration = Math.max(1, endH - startH);
+  const duration = Math.min(8, rawDuration);
+  const toPeriod = Math.min(13, fromPeriod + duration - 1);
+
+  return { fromPeriod, toPeriod, duration };
+}
+
 function normalizeBooking(b) {
   return {
     ...b,
@@ -51,18 +90,42 @@ export const bookingService = {
 
   submitBooking: async (booking) => {
     try {
+      const day = booking.day || (booking.date ? dateToDayOfWeek(booking.date) : 'MON');
+      let fromPeriod = booking.startPeriod || booking.from_period;
+      let toPeriod = booking.toPeriod || booking.to_period;
+      let duration = booking.duration || booking.duration_periods;
+
+      if ((!fromPeriod || !duration) && booking.startTime) {
+        const periodInfo = timeRangeToPeriods(booking.startTime, booking.endTime);
+        if (!fromPeriod) fromPeriod = periodInfo.fromPeriod;
+        if (!duration) duration = periodInfo.duration;
+        if (!toPeriod) toPeriod = periodInfo.toPeriod;
+      }
+
+      fromPeriod = Number(fromPeriod || 6);
+      duration = Number(duration || 2);
+      toPeriod = Number(toPeriod || (fromPeriod + duration - 1));
+
+      const windows =
+        booking.windows && booking.windows.length > 0
+          ? booking.windows
+          : [
+              {
+                day,
+                from_period: fromPeriod,
+                to_period: toPeriod,
+              },
+            ];
+
       const payload = {
         title: booking.title || booking.name || 'Event Booking',
-        attendance: parseInt(booking.attendance || booking.attendees || booking.expectedAttendance || 50, 10),
-        duration_periods: parseInt(booking.duration || booking.duration_periods || 2, 10),
-        requested_category: booking.category || booking.requested_category || 'club_event',
-        windows: booking.windows || [
-          {
-            day: booking.day || 'MON',
-            from_period: Number(booking.startPeriod || 6),
-            to_period: Number((booking.startPeriod || 6) + (booking.duration || 2) - 1),
-          },
-        ],
+        attendance: Math.max(
+          1,
+          parseInt(booking.attendance || booking.attendees || booking.expectedAttendance || 50, 10)
+        ),
+        duration_periods: duration,
+        requested_category: booking.requested_category || booking.category || 'club_event',
+        windows,
         room_types: booking.room_types || (booking.roomType ? [booking.roomType] : ['classroom']),
         requested_room: booking.room || booking.requested_room || null,
         raw_text: booking.raw_text || booking.description || booking.purpose || null,
@@ -145,14 +208,26 @@ export const bookingService = {
       const proposal = res?.action_proposal || {};
       const entities = res?.entities || {};
 
+      const parsed = {
+        title: entities.title || proposal.title || 'Extracted Event',
+        room: entities.room || proposal.requested_room || 'AUD',
+        date: entities.day || proposal.day || '2026-11-09',
+        startTime: '14:00',
+        endTime: '16:00',
+        time: proposal.from_period ? `P${proposal.from_period}` : 'P6-P8',
+        attendance: entities.attendance || proposal.attendance || 50,
+        capacity: entities.attendance || proposal.attendance || 50,
+        category: proposal.requested_category || 'club_event',
+        purpose: text,
+      };
+
       return {
         data: {
-          title: entities.title || proposal.title || 'Extracted Event',
-          room: entities.room || proposal.requested_room || 'AUD',
-          date: entities.day || proposal.day || 'MON',
-          time: proposal.from_period ? `P${proposal.from_period}` : 'P6-P8',
-          attendance: entities.attendance || proposal.attendance || 50,
-          category: proposal.requested_category || 'club_event',
+          ...parsed,
+          parsed,
+          suggestedRooms: proposal.requested_room
+            ? [{ id: proposal.requested_room, name: proposal.requested_room }]
+            : [],
           parsedSuccessfully: true,
           action_proposal: proposal,
           reply: res?.reply,

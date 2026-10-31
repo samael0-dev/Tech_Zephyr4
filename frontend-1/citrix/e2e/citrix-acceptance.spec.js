@@ -133,4 +133,23 @@ test.describe('CITRIX Phase 5E Acceptance Test Suite', () => {
     await page.goto('/campus');
     await expect(page).toHaveURL(/\/campus/);
   });
+
+  // Scenario 11: Manual Campus Venue Reservation submits successfully
+  test('Scenario 11: Manual Campus Venue Reservation submits successfully', async ({ page }) => {
+    await page.goto('/login');
+    await page.locator('text=Aryan Mehta').first().click();
+    await expect(page).toHaveURL(/\/club/);
+
+    await page.goto('/bookings/new');
+    await expect(page).toHaveURL(/\/bookings\/new/);
+    await expect(page.locator('text=Manual Campus Venue Reservation')).toBeVisible();
+
+    await page.locator('input[placeholder*="Extra Lecture"]').fill('Robotics Annual Tech Showcase');
+    await page.locator('textarea[placeholder*="curriculum"]').fill('Robotics club demonstration of autonomous drones');
+
+    await page.locator('button:has-text("Submit Reservation")').click();
+
+    await expect(page).toHaveURL(/\/bookings/);
+    await expect(page.locator('text=Robotics Annual Tech Showcase').first()).toBeVisible();
+  });
 });

@@ -97,9 +97,9 @@ async function request(endpoint, options = {}) {
       }
     }
 
-    // 401 Unauthorized handling: session expired for real JWT tokens
+    // 401 Unauthorized handling: session expired or token invalid
     if (response.status === 401) {
-      if (token && token !== 'demo-local-token') {
+      if (token) {
         useAuthStore.getState?.()?.logout?.();
       }
     }

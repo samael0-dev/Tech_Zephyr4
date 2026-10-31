@@ -102,14 +102,40 @@ export const useAuthStore = create(
 
       fetchCurrentUser: async () => {
         const token = get().token;
-        if (!token || token === 'demo-local-token') return get().user;
+        const currentUser = get().user;
+
+        // If the user has a mock token, automatically authenticate with backend to get a real JWT
+        if (!token || token === 'demo-local-token') {
+          const credsKey = currentUser?.id || (currentUser?.role ? `demo-${currentUser.role}` : null);
+          const creds = credsKey ? DEMO_CREDENTIALS[credsKey] : null;
+          if (creds) {
+            try {
+              return await get().loginWithCredentials(creds.username_or_email, creds.password);
+            } catch (loginErr) {
+              console.warn('Could not auto-upgrade demo token:', loginErr.message);
+              return currentUser;
+            }
+          }
+          return currentUser;
+        }
+
         try {
           const userData = await apiClient.get('/auth/me');
           const normalized = normalizeUser(userData);
           set({ user: normalized, isAuthenticated: true });
           return normalized;
         } catch {
-          // Session expired or invalid
+          // Session expired or invalid; if demo user, attempt re-login before logging out
+          const credsKey = currentUser?.id || (currentUser?.role ? `demo-${currentUser.role}` : null);
+          const creds = credsKey ? DEMO_CREDENTIALS[credsKey] : null;
+          if (creds) {
+            try {
+              return await get().loginWithCredentials(creds.username_or_email, creds.password);
+            } catch {
+              get().logout();
+              return null;
+            }
+          }
           get().logout();
           return null;
         }
