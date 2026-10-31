@@ -62,13 +62,12 @@ def get_dean_dashboard(
     # Department utilization
     departments = ["CSE", "ECE", "ME", "EE", "CE"]
     dept_utilization = {}
+    all_db_sessions = db.query(SessionEntity).all()
     for dept in departments:
-        dept_groups = [g.id for g in db.query(StudentGroup).filter(StudentGroup.department == dept).all()]
-        dept_sessions_count = (
-            db.query(SessionEntity)
-            .filter(SessionEntity.groups.contains(dept_groups[0] if dept_groups else ""))
-            .count()
-        )
+        dept_group_set = {g.id for g in db.query(StudentGroup).filter(StudentGroup.department == dept).all()}
+        dept_sessions_count = len([
+            s for s in all_db_sessions if any(grp in dept_group_set for grp in (s.groups or []))
+        ])
         dept_utilization[dept] = round(min(1.0, dept_sessions_count / 30.0), 2)
 
     # Room period utilization

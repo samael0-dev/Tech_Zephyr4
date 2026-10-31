@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ExamResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     course_ids: List[str]
     groups: List[str]
@@ -11,9 +13,6 @@ class ExamResponse(BaseModel):
     day: Optional[str] = None
     session: Optional[str] = None  # AM or PM
     rooms: List[str] = []
-
-    class Config:
-        from_attributes = True
 
 
 class DisruptionRequest(BaseModel):

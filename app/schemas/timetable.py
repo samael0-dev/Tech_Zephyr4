@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     course_id: str
     kind: str
@@ -20,9 +22,6 @@ class SessionResponse(BaseModel):
     start_period: Optional[int] = None
     room_id: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class TimetableQuery(BaseModel):
     group_id: Optional[str] = None
@@ -37,6 +36,8 @@ class ScheduleGenerateRequest(BaseModel):
 
 
 class ScheduleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     dataset_id: str
     version_name: str
@@ -47,6 +48,3 @@ class ScheduleResponse(BaseModel):
     solver_status: str
     solver_metrics: Dict[str, Any] = {}
     sessions_count: int = 0
-
-    class Config:
-        from_attributes = True
