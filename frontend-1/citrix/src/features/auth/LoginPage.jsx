@@ -123,6 +123,13 @@ export default function LoginPage() {
       <div className="w-full max-w-5xl z-10 space-y-8">
         {/* Brand Header */}
         <div className="text-center space-y-3">
+          <div className="flex justify-center mb-1">
+            <img
+              src="/favicon.png"
+              alt="CITRIX Logo"
+              className="w-16 h-16 object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+            />
+          </div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-inner">
             <Sparkles className="w-4 h-4 text-cyan-400" />
             <span className="text-[11px] font-bold text-slate-300 tracking-wider uppercase">

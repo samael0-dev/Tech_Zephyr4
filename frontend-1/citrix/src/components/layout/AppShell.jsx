@@ -215,9 +215,11 @@ export default function AppShell({ children }) {
           </button>
 
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-black text-white text-base">
-              C
-            </div>
+            <img
+              src="/favicon.png"
+              alt="CITRIX"
+              className="w-8 h-8 rounded-lg object-contain shadow-md shadow-indigo-500/20"
+            />
             <div>
               <span className="font-extrabold tracking-tight text-lg text-white">
                 CIT<span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent">RIX</span>
