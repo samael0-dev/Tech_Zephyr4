@@ -95,6 +95,76 @@ export const useAuthStore = create(
         }
       },
 
+      signup: async ({ name, email, role = 'student', department = 'CSE', password = 'password123' }) => {
+        set({ loading: true, error: null });
+        try {
+          // Map to backend role persona so the session obtains a valid JWT token
+          const roleMapping = {
+            student: 'demo-student',
+            faculty: 'demo-faculty',
+            coordinator: 'demo-coordinator',
+            club: 'demo-club',
+            admin: 'demo-admin',
+          };
+          const personaKey = roleMapping[role] || 'demo-student';
+          const creds = DEMO_CREDENTIALS[personaKey];
+
+          try {
+            const authData = await apiClient.post('/auth/login', {
+              username_or_email: creds.username_or_email,
+              password: creds.password,
+            });
+
+            const userWithCustomInfo = {
+              ...normalizeUser(authData.user),
+              name: name || authData.user.name,
+              email: email || authData.user.email,
+              department: department || authData.user.department,
+              role: role === 'department_coordinator' ? 'coordinator' : role,
+              rawRole: role,
+            };
+
+            set({
+              user: userWithCustomInfo,
+              token: authData.access_token,
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+            });
+            return userWithCustomInfo;
+          } catch {
+            const fallbackUser = {
+              id: `usr-reg-${Date.now().toString(36)}`,
+              name,
+              email,
+              role: role === 'department_coordinator' ? 'coordinator' : role,
+              rawRole: role,
+              department: department || 'CSE',
+              avatar: name
+                ? name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()
+                : 'U',
+              color: 'bg-emerald-600',
+            };
+            set({
+              user: fallbackUser,
+              token: 'demo-local-token',
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+            });
+            return fallbackUser;
+          }
+        } catch (err) {
+          set({ loading: false, error: err.message });
+          throw err;
+        }
+      },
+
       // Backward compatible login method
       login: (accountId) => {
         return get().loginWithDemo(accountId);

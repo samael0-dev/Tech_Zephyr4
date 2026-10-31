@@ -152,4 +152,48 @@ test.describe('CITRIX Phase 5E Acceptance Test Suite', () => {
     await expect(page).toHaveURL(/\/bookings/);
     await expect(page.locator('text=Robotics Annual Tech Showcase').first()).toBeVisible();
   });
+
+  // Scenario 12: Faculty demo login opens Faculty Workspace without rendering error
+  test('Scenario 12: Faculty demo login opens Faculty Workspace smoothly', async ({ page }) => {
+    await page.goto('/login');
+    await page.locator('text=Dr. Rajesh Kumar').first().click();
+    await expect(page).toHaveURL(/\/faculty/);
+
+    await expect(page.locator('text=/Faculty Workspace:/').first()).toBeVisible();
+    await expect(page.locator('text=FACULTY PORTAL').first()).toBeVisible();
+    await expect(page.locator('text=My Teaching Sessions Roster').first()).toBeVisible();
+  });
+
+  // Scenario 13: Manual Sign In with credentials works
+  test('Scenario 13: Manual Sign In tab authenticates user', async ({ page }) => {
+    await page.goto('/login');
+
+    // Make sure we are on Sign In tab using exact name
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+
+    // Fill credentials
+    await page.locator('input[placeholder*="dean@cit.edu"]').fill('dean@cit.edu');
+    await page.locator('input[placeholder="••••••••••••"]').fill('password123');
+
+    await page.locator('button:has-text("Sign In to Platform")').click();
+    await expect(page).toHaveURL(/\/admin/);
+    await expect(page.locator('text=Institutional Command Center')).toBeVisible();
+  });
+
+  // Scenario 14: Create Account / Sign Up tab creates account and accesses workspace
+  test('Scenario 14: Create Account tab registers and enters dashboard', async ({ page }) => {
+    await page.goto('/login');
+
+    // Switch to Create Account tab
+    await page.locator('button:has-text("Create Account")').click();
+
+    // Fill signup form
+    await page.locator('input[placeholder*="Dr. Ananya Das"]').fill('Neha Sharma');
+    await page.locator('input[placeholder*="ananya.das@cit.edu"]').fill('neha.sharma@cit.edu');
+    await page.locator('input[placeholder="Minimum 6 characters"]').fill('citrix2026');
+
+    await page.locator('button:has-text("Register & Access Workspace")').click();
+    await expect(page).toHaveURL(/\/student/);
+    await expect(page.locator('text=STUDENT PORTAL').first()).toBeVisible();
+  });
 });

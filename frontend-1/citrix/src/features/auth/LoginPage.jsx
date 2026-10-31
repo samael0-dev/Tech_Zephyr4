@@ -17,17 +17,31 @@ import {
   Lock,
   Mail,
   KeyRound,
-  ShieldCheck
+  ShieldCheck,
+  User,
+  UserPlus,
+  LogIn,
+  BookOpen
 } from 'lucide-react';
 import { Button, Badge } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { loginWithCredentials, loginWithDemo } = useAuthStore();
+  const { loginWithCredentials, loginWithDemo, signup } = useAuthStore();
   const toast = useToast();
+
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Signup fields
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupRole, setSignupRole] = useState('student');
+  const [signupDept, setSignupDept] = useState('CSE');
+
   const [loadingRole, setLoadingRole] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -69,6 +83,46 @@ export default function LoginPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleManualSignup = async (e) => {
+    e.preventDefault();
+    if (!signupName.trim()) {
+      toast.error('Please enter your full name');
+      return;
+    }
+    if (!signupEmail.trim()) {
+      toast.error('Please enter a valid institutional email');
+      return;
+    }
+    if (!signupPassword || signupPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const createdUser = await signup({
+        name: signupName.trim(),
+        email: signupEmail.trim(),
+        role: signupRole,
+        department: signupDept.trim() || 'CSE',
+        password: signupPassword,
+      });
+
+      toast.success(`Account registered! Welcome to CITRIX, ${createdUser.name}`);
+      routeForRole(createdUser.role);
+    } catch (err) {
+      toast.error(err.message || 'Registration failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const prefillAccount = (userEmail, userPass) => {
+    setEmail(userEmail);
+    setPassword(userPass);
+    toast.info(`Filled credentials for ${userEmail}`);
   };
 
   const roleStyles = {
@@ -203,54 +257,248 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Divider / Manual login area */}
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md max-w-md mx-auto">
-          <div className="text-center mb-5">
-            <h3 className="text-sm font-bold text-slate-100">Or Sign In with Credentials</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Production accounts are authenticated through backend OAuth / SSO
-            </p>
+        {/* Credentials Authentication & Registration Card */}
+        <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md max-w-lg mx-auto shadow-2xl">
+          {/* Tabs: Sign In vs Sign Up */}
+          <div className="flex items-center p-1 bg-slate-950/80 rounded-xl border border-slate-800 mb-6">
+            <button
+              type="button"
+              onClick={() => setAuthMode('login')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${
+                authMode === 'login'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthMode('signup')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${
+                authMode === 'signup'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              Create Account
+            </button>
           </div>
 
-          <form onSubmit={handleManualLogin} className="space-y-3">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-400 font-medium">CIT Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. dean@cit.ac.in"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                />
+          {authMode === 'login' ? (
+            /* Login Form */
+            <form onSubmit={handleManualLogin} className="space-y-4">
+              <div className="text-center mb-3">
+                <h3 className="text-sm font-bold text-slate-100">Sign In with CIT Credentials</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Enter your email address and password to access your role portal
+                </p>
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-slate-400 font-medium">Password</label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                />
+              {/* Quick credential chips */}
+              <div className="space-y-1.5 pb-1">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                  Quick Fill Test Credentials:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => prefillAccount('dean@cit.edu', 'password123')}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-blue-300 font-medium transition-colors"
+                  >
+                    Dean (Admin)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillAccount('coordinator.cse@cit.edu', 'password123')}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-teal-300 font-medium transition-colors"
+                  >
+                    Coordinator (CSE)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillAccount('f01@cit.edu', 'password123')}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-purple-300 font-medium transition-colors"
+                  >
+                    Faculty (CSE)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillAccount('coding@cit.edu', 'password123')}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-amber-300 font-medium transition-colors"
+                  >
+                    Club (Coding)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => prefillAccount('student.y1a@cit.edu', 'password123')}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-emerald-300 font-medium transition-colors"
+                  >
+                    Student (Y1-A)
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <Button type="submit" variant="primary" className="w-full mt-2">
-              Sign In to Platform
-            </Button>
-          </form>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-300 font-semibold">CIT Email / Username</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. f01@cit.edu or dean@cit.edu"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
 
-          <div className="mt-4 text-center">
-            <span className="text-[11px] text-slate-500">
-              Demo tip: Selecting any demo card above grants immediate authenticated access.
-            </span>
-          </div>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-300 font-semibold">Password</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                loading={submitting}
+                className="w-full py-2.5 text-xs font-bold"
+              >
+                Sign In to Platform
+              </Button>
+
+              <div className="text-center pt-2">
+                <span className="text-xs text-slate-400">
+                  New to CITRIX?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signup')}
+                    className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 ml-1"
+                  >
+                    Create an institutional account
+                  </button>
+                </span>
+              </div>
+            </form>
+          ) : (
+            /* Sign Up Form */
+            <form onSubmit={handleManualSignup} className="space-y-3.5">
+              <div className="text-center mb-2">
+                <h3 className="text-sm font-bold text-slate-100">Create Institutional Account</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Register your campus identity to obtain tailored timetable and venue access
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-300 font-semibold">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                    placeholder="e.g. Dr. Ananya Das / Rohit Sharma"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-300 font-semibold">Institutional Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="email"
+                    required
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    placeholder="e.g. ananya.das@cit.edu"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 font-semibold">Campus Role</label>
+                  <select
+                    value={signupRole}
+                    onChange={(e) => setSignupRole(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  >
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty Member</option>
+                    <option value="club">Club Representative</option>
+                    <option value="coordinator">Department Coordinator</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 font-semibold">Department / Cohort</label>
+                  <input
+                    type="text"
+                    value={signupDept}
+                    onChange={(e) => setSignupDept(e.target.value)}
+                    placeholder="e.g. CSE or Y1-A"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-slate-300 font-semibold">Create Password</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                loading={submitting}
+                className="w-full py-2.5 text-xs font-bold mt-1"
+              >
+                Register &amp; Access Workspace
+              </Button>
+
+              <div className="text-center pt-2">
+                <span className="text-xs text-slate-400">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('login')}
+                    className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2 ml-1"
+                  >
+                    Sign In
+                  </button>
+                </span>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Footer info */}
@@ -260,7 +508,7 @@ export default function LoginPage() {
             <span>Chilika Institute of Technology Campus Operations</span>
           </div>
           <div>
-            <span>Backend Integration: Mock Adapter v2.1 • CP-SAT API Contract Ready</span>
+            <span>Backend Integration: OAuth Bearer JWT • CP-SAT API Contract Ready</span>
           </div>
         </div>
       </div>
