@@ -8,9 +8,17 @@ from app.core.database import Base, get_db
 from app.main import app
 from app.services.data_loader import load_starter_pack_data
 
-TEST_DATABASE_URL = "sqlite:///./test_campus_ops.db"
+from sqlalchemy.pool import StaticPool
 
-test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+# Use SQLite in-memory with StaticPool for hermetic, zero-file test execution.
+# Retires test_campus_ops.db without writing any database files to disk.
+TEST_DATABASE_URL = "sqlite:///:memory:"
+
+test_engine = create_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 

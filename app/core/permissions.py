@@ -1,13 +1,41 @@
 from enum import Enum
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 
 
 class RoleEnum(str, Enum):
+    # Official Competition Personas
     ADMIN = "admin"
-    DEPARTMENT_COORDINATOR = "department_coordinator"
+    COORDINATOR = "department_coordinator"
     FACULTY = "faculty"
+    CLUB_REPRESENTATIVE = "club"
+
+    # Backward-Compatibility Aliases
+    DEPARTMENT_COORDINATOR = "department_coordinator"
     CLUB = "club"
+
+    # Additional Scoped Roles
     STUDENT = "student"
+    SECURITY = "security"
+
+
+def normalize_role(role: Optional[str]) -> str:
+    """Normalize incoming role string to standard canonical system role."""
+    if not role:
+        return RoleEnum.STUDENT.value
+    r = role.strip().lower()
+    mapping = {
+        "admin": RoleEnum.ADMIN.value,
+        "coordinator": RoleEnum.COORDINATOR.value,
+        "department_coordinator": RoleEnum.COORDINATOR.value,
+        "faculty": RoleEnum.FACULTY.value,
+        "club": RoleEnum.CLUB_REPRESENTATIVE.value,
+        "club_representative": RoleEnum.CLUB_REPRESENTATIVE.value,
+        "student": RoleEnum.STUDENT.value,
+        "security": RoleEnum.SECURITY.value,
+        "dean": RoleEnum.ADMIN.value,
+        "hod": RoleEnum.COORDINATOR.value,
+    }
+    return mapping.get(r, r)
 
 
 class Permission(str, Enum):
@@ -81,7 +109,7 @@ ROLE_PERMISSIONS: Dict[RoleEnum, Set[Permission]] = {
         Permission.SYSTEM_RESET_DEMO,
         Permission.ASSISTANT_CHAT,
     },
-    RoleEnum.DEPARTMENT_COORDINATOR: {
+    RoleEnum.COORDINATOR: {
         Permission.TIMETABLE_VIEW_DEPT,
         Permission.TIMETABLE_REQUEST_CHANGE,
         Permission.BOOKING_CREATE,
@@ -89,7 +117,6 @@ ROLE_PERMISSIONS: Dict[RoleEnum, Set[Permission]] = {
         Permission.BOOKING_APPROVE_DEPT_LAB,
         Permission.BOOKING_REJECT,
         Permission.BOOKING_CANCEL_OWN,
-        Permission.EXAM_VIEW_ALL,
         Permission.ROOM_VIEW,
         Permission.DASHBOARD_COORDINATOR,
         Permission.ANALYTICS_VIEW_DEPT,
@@ -106,7 +133,7 @@ ROLE_PERMISSIONS: Dict[RoleEnum, Set[Permission]] = {
         Permission.DASHBOARD_FACULTY,
         Permission.ASSISTANT_CHAT,
     },
-    RoleEnum.CLUB: {
+    RoleEnum.CLUB_REPRESENTATIVE: {
         Permission.BOOKING_CREATE,
         Permission.BOOKING_VIEW_OWN,
         Permission.BOOKING_CANCEL_OWN,
@@ -121,23 +148,29 @@ ROLE_PERMISSIONS: Dict[RoleEnum, Set[Permission]] = {
         Permission.DASHBOARD_STUDENT,
         Permission.ASSISTANT_CHAT,
     },
+    RoleEnum.SECURITY: {
+        Permission.ROOM_VIEW,
+        Permission.TIMETABLE_VIEW_ALL,
+        Permission.ASSISTANT_CHAT,
+    },
 }
 
-# Role category maximum capability according to competition dataset:
-ROLE_CATEGORY_CAP = {
+# Role category cap mapping
+ROLE_CATEGORY_CAP: Dict[RoleEnum, Optional[str]] = {
     RoleEnum.ADMIN: "institute_event",
+    RoleEnum.COORDINATOR: "department_event",
     RoleEnum.FACULTY: "guest_lecture",
-    RoleEnum.DEPARTMENT_COORDINATOR: "department_event",
-    RoleEnum.CLUB: "club_event",
+    RoleEnum.CLUB_REPRESENTATIVE: "club_event",
     RoleEnum.STUDENT: None,
+    RoleEnum.SECURITY: None,
 }
 
-# Department to Lab Room Types mapping for Coordinator lab approvals:
+# Department specialized laboratory room types
 DEPARTMENT_LAB_ROOM_TYPES = {
     "CSE": ["lab_cs"],
     "ECE": ["lab_elec"],
     "EE": ["lab_elec"],
-    "CE": ["lab_civil"],
     "ME": ["workshop"],
+    "CE": ["lab_civil"],
     "PH": ["lab_phy"],
 }

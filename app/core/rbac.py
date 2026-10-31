@@ -10,6 +10,7 @@ from app.core.permissions import (
     ROLE_PERMISSIONS,
     Permission,
     RoleEnum,
+    normalize_role,
 )
 from app.core.security import decode_access_token
 from app.models.booking import BookingRequest
@@ -51,7 +52,8 @@ def get_current_user(
         )
 
     # Calculate permissions dynamically from RoleEnum
-    role_enum = RoleEnum(user.role) if user.role in [r.value for r in RoleEnum] else None
+    normalized_role = normalize_role(user.role)
+    role_enum = RoleEnum(normalized_role) if normalized_role in [r.value for r in RoleEnum] else None
     perms = [p.value for p in ROLE_PERMISSIONS.get(role_enum, set())] if role_enum else []
 
     return CurrentUser(

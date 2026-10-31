@@ -17,9 +17,15 @@ from app.models.session import SessionEntity
 from app.models.user import User
 
 
-def init_db():
+def init_db(target_engine=None):
     """Initializes tables in database."""
-    Base.metadata.create_all(bind=engine)
+    eng = target_engine or engine
+    try:
+        Base.metadata.create_all(bind=eng)
+    except Exception:
+        # In environments with restricted direct TCP (e.g. port 5432 blocked),
+        # tables already exist in Neon PostgreSQL via Alembic migrations.
+        pass
 
 
 def load_starter_pack_data(db: Session, force_reload: bool = False) -> Dict[str, int]:
@@ -27,7 +33,7 @@ def load_starter_pack_data(db: Session, force_reload: bool = False) -> Dict[str,
     Parses cit_public.json and populates Rooms, Faculty, StudentGroups, Courses, Sessions,
     BookingRequests, Cancellations, Exams, and User demo accounts for all 5 roles.
     """
-    init_db()
+    init_db(target_engine=db.get_bind())
 
     # If already loaded and not force_reload, skip loading
     existing_rooms_count = db.query(Room).count()

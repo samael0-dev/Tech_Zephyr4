@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
-    # Database
-    DATABASE_URL: str = "sqlite:///./campus_ops.db"
+    # Database (Neon Serverless PostgreSQL)
+    DATABASE_URL: str = ""
 
     # Dataset paths
     DATASET_PATH: str = "CrunchWeek_StarterPack/data/cit_public.json"

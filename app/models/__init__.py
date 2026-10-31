@@ -1,31 +1,79 @@
+"""Canonical database models for CITRIX application."""
+
 from app.core.database import Base
-from app.models.audit_log import AuditLog, Disruption, Notification
-from app.models.base import TimestampMixin
-from app.models.booking import BookingRequest
-from app.models.exam import Exam
-from app.models.faculty import Course, Faculty, StudentGroup
-from app.models.knowledge import KnowledgeDocument
-from app.models.room import Room, RoomUnavailability
-from app.models.schedule import ScheduledSession, ScheduleVersion
-from app.models.session import SessionEntity
-from app.models.user import User
+from app.models.canonical import (
+    AcademicPeriod,
+    AcademicTerm,
+    AuditLog,
+    BookingCancellation,
+    BookingRequest,
+    Building,
+    Course,
+    Department,
+    Disruption,
+    DocumentChunk,
+    EventCategory,
+    Exam,
+    ExamRoomAllocation,
+    ExamSession,
+    Faculty,
+    FacultyProfile,
+    FacultyUnavailability,
+    KnowledgeDocument,
+    Notification,
+    Role,
+    Room,
+    RoomUnavailability,
+    Schedule,
+    ScheduleVersion,
+    ScheduledSession,
+    SchedulingConflict,
+    Session,
+    SessionEntity,
+    SessionGroup,
+    StudentGroup,
+    TimestampMixin,
+    TimetableEntry,
+    User,
+    UserRole,
+    UtilisationSnapshot,
+)
 
 __all__ = [
     "Base",
     "TimestampMixin",
+    "Role",
+    "Department",
     "User",
+    "UserRole",
+    "FacultyProfile",
+    "Faculty",
+    "FacultyUnavailability",
+    "StudentGroup",
+    "AcademicTerm",
+    "AcademicPeriod",
+    "Course",
+    "Building",
     "Room",
     "RoomUnavailability",
-    "Faculty",
-    "StudentGroup",
-    "Course",
+    "Session",
     "SessionEntity",
+    "SessionGroup",
+    "Schedule",
     "ScheduleVersion",
+    "TimetableEntry",
     "ScheduledSession",
+    "EventCategory",
     "BookingRequest",
+    "BookingCancellation",
+    "ExamSession",
     "Exam",
-    "KnowledgeDocument",
+    "ExamRoomAllocation",
     "Disruption",
     "AuditLog",
     "Notification",
+    "SchedulingConflict",
+    "UtilisationSnapshot",
+    "KnowledgeDocument",
+    "DocumentChunk",
 ]

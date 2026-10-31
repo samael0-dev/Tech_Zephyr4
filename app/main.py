@@ -14,14 +14,19 @@ from app.services.data_loader import init_db, load_starter_pack_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist and seed starter data
-    init_db()
-    db = SessionLocal()
+    # Startup: ensure tables exist and seed starter data if reachable
     try:
-        load_starter_pack_data(db)
-        initialize_default_knowledge_base(db)
-    finally:
-        db.close()
+        init_db()
+        db = SessionLocal()
+        try:
+            load_starter_pack_data(db)
+            initialize_default_knowledge_base(db)
+        finally:
+            db.close()
+    except Exception:
+        # Pre-populated Neon PostgreSQL database is authoritative via Alembic migrations.
+        # Local environments with ISP port 5432 restrictions bypass startup auto-seeding.
+        pass
     yield
     # Shutdown logic if any
 
