@@ -10,6 +10,7 @@ from app.core.audit import log_audit_event
 from app.core.database import get_db
 from app.core.permissions import Permission
 from app.core.rbac import get_current_user, require_permission, require_roles
+from app.models.audit_log import Disruption
 from app.schemas.auth import CurrentUser
 from app.schemas.booking import BookingCreateRequest
 from app.schemas.response import ApiResponse
@@ -29,8 +30,10 @@ class AgentChatResponse(BaseModel):
     entities: Dict[str, Any] = {}
     citations: List[Dict[str, Any]] = []
     tool_result: Optional[Dict[str, Any]] = None
+    tool_calls: List[Dict[str, Any]] = []
     requires_confirmation: bool = False
     action_proposal: Optional[Dict[str, Any]] = None
+    latency_ms: float = 0.0
 
 
 class ActionConfirmationRequest(BaseModel):
@@ -51,8 +54,8 @@ def chat_with_agent(
     - Intent understanding & entity extraction (English & Hinglish)
     - Role-aware RAG institutional knowledge retrieval with citations
     - Backend tool execution (room availability, timetables, bookings, CP-SAT conflicts)
-    - Confirmation handling for state mutations
-    - Grounded generation powered by TinyLlama ChatHuggingFace
+    - Execution state & latency tracking for frontend visualization
+    - Human-in-the-loop confirmation handling for state mutations
     """
     res = run_citrix_orchestrator(
         db=db,
@@ -69,8 +72,10 @@ def chat_with_agent(
             entities=res["entities"],
             citations=res["citations"],
             tool_result=res["tool_result"],
+            tool_calls=res.get("tool_calls", []),
             requires_confirmation=res["requires_confirmation"],
             action_proposal=res["action_proposal"],
+            latency_ms=res.get("latency_ms", 0.0),
         ),
         message="Assistant response generated successfully",
     )
@@ -96,9 +101,9 @@ def confirm_agentic_action(
         )
 
     client_ip = request.client.host if request.client else None
+    proposal = req.proposal
 
     if req.action_type == "create_booking":
-        proposal = req.proposal
         create_req = BookingCreateRequest(
             title=proposal.get("title", f"Event by {current_user.name}"),
             attendance=proposal.get("attendance", 50),
@@ -135,6 +140,44 @@ def confirm_agentic_action(
             message=f"Booking {booking.id} created successfully after user confirmation.",
         )
 
+    elif req.action_type == "apply_disruption":
+        disrupt_type = proposal.get("disruption_type", "faculty_unavailable")
+        disruption_obj = Disruption(
+            submitted_by_user_id=current_user.id,
+            disruption_type=disrupt_type,
+            payload=proposal,
+            status="pending",
+            impact_summary={
+                "affected_sessions": proposal.get("affected_sessions", []),
+                "estimated_moves": proposal.get("estimated_moves", 0),
+            },
+        )
+        db.add(disruption_obj)
+        db.commit()
+        db.refresh(disruption_obj)
+
+        log_audit_event(
+            db=db,
+            actor=current_user,
+            action="disruption:create:ai_confirmed",
+            entity_type="disruption",
+            entity_id=str(disruption_obj.id),
+            status="SUCCESS",
+            details=proposal,
+            ip_address=client_ip,
+        )
+
+        return ApiResponse(
+            success=True,
+            data={
+                "status": "pending_approval",
+                "disruption_id": disruption_obj.id,
+                "affected_sessions_count": len(proposal.get("affected_sessions", [])),
+                "affected_sessions": proposal.get("affected_sessions", []),
+            },
+            message=f"Disruption request #{disruption_obj.id} logged and awaiting Admin approval for rescheduling.",
+        )
+
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=f"Unknown or unsupported action type '{req.action_type}'",
@@ -157,7 +200,6 @@ def get_dean_ai_insights(
 
     intel = tool_entry["func"](db, current_user)
 
-    # Explain evidence behind observations
     observations = [
         f"There are {intel['total_campus_venues']} campus venues across 12 building blocks.",
         f"{intel['pending_booking_approvals_count']} booking requests are awaiting administrative decision.",

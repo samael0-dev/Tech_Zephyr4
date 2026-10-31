@@ -134,7 +134,7 @@ def classify_user_intent(message: str, current_role: str = "student") -> IntentR
     entities = extract_entities(message)
 
     # 1. Booking Status / Rejection reason query
-    if any(k in lower for k in ["why was", "kyun reject", "rejection reason", "booking status", "check booking", "decision reason"]):
+    if any(k in lower for k in ["status", "why was", "kyun reject", "rejection reason", "decision reason"]) and ("br-" in lower or "booking" in lower or "request" in lower):
         return IntentResult(
             intent_type="booking_status",
             confidence=0.95,
@@ -173,7 +173,7 @@ def classify_user_intent(message: str, current_role: str = "student") -> IntentR
         )
 
     # 5. Booking Creation / Request
-    if any(k in lower for k in ["book", "reserve", "chahiye", "venue request", "need the auditorium", "need sh-1", "host event"]):
+    if re.search(r"\b(book|reserve|chahiye|need the auditorium|need sh-1|host event)\b", lower):
         missing = []
         if "day" not in entities:
             missing.append("day")

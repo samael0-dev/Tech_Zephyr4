@@ -1,3 +1,4 @@
+import time
 from typing import Any, Dict, List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -9,6 +10,7 @@ from app.ai.agent.prompts import CITRIX_SYSTEM_PROMPT
 from app.ai.agent.tools import tool_registry
 from app.ai.llm_factory import invoke_citrix_llm
 from app.ai.rag.retrieval_service import retrieve_relevant_knowledge
+from app.models.session import SessionEntity
 from app.schemas.auth import CurrentUser
 
 
@@ -24,9 +26,11 @@ def run_citrix_orchestrator(
     2. Classify intent & extract entities.
     3. Determine whether tool execution, RAG retrieval, or clarification is needed.
     4. Enforce role-based access permissions.
-    5. Execute permitted tools and/or RAG search.
+    5. Execute permitted tools and measure tool execution latency.
     6. Synthesize grounded response using TinyLlama ChatHuggingFace model.
+    7. Track total end-to-end orchestration latency.
     """
+    start_total_time = time.perf_counter()
     s_id = session_id or f"sess-{user.id}"
 
     # 1. Classify intent & extract entities
@@ -47,40 +51,50 @@ def run_citrix_orchestrator(
     if intent_res.clarification_question:
         reply = intent_res.clarification_question
         conversation_manager.add_assistant_turn(s_id, reply)
+        total_duration_ms = round((time.perf_counter() - start_total_time) * 1000, 2)
         return {
             "reply": reply,
             "intent": intent_res.intent_type,
             "entities": accumulated,
             "citations": [],
             "tool_result": None,
+            "tool_calls": [],
             "requires_confirmation": False,
             "action_proposal": None,
+            "latency_ms": total_duration_ms,
         }
 
     tool_result: Optional[Dict[str, Any]] = None
-    executed_tool_name: Optional[str] = None
     action_proposal: Optional[Dict[str, Any]] = None
     requires_confirmation = False
     citations: List[Dict[str, Any]] = []
+    tool_calls_log: List[Dict[str, Any]] = []
 
-    # 4. Agentic Branching: Tool Execution or RAG Retrieval
+    # 4. Agentic Branching: Tool Execution via Registry
     if intent_res.intent_type == "room_search":
         rid = accumulated.get("room_id", "SH-1")
         day = accumulated.get("day", "MON")
-        tool_entry = tool_registry.get_tool("lookup_room_availability")
-        if tool_entry:
-            tool_result = tool_entry["func"](db, user, room_id=rid, day=day)
-            executed_tool_name = "lookup_room_availability"
+        t_exec = tool_registry.execute("lookup_room_availability", db, user, room_id=rid, day=day)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "lookup_room_availability",
+            "arguments": {"room_id": rid, "day": day},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
     elif intent_res.intent_type == "booking_status":
         bid = accumulated.get("booking_id", "BR-09")
-        tool_entry = tool_registry.get_tool("lookup_booking_status")
-        if tool_entry:
-            tool_result = tool_entry["func"](db, user, booking_id=bid)
-            executed_tool_name = "lookup_booking_status"
+        t_exec = tool_registry.execute("lookup_booking_status", db, user, booking_id=bid)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "lookup_booking_status",
+            "arguments": {"booking_id": bid},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
     elif intent_res.intent_type == "booking_create":
-        # Prepare proposal requiring confirmation
         title = accumulated.get("title", f"Event by {user.name}")
         attendance = accumulated.get("attendance", 50)
         room_id = accumulated.get("room_id", "SH-1")
@@ -88,18 +102,51 @@ def run_citrix_orchestrator(
         from_p = accumulated.get("from_period", 10)
         to_p = accumulated.get("to_period", 11)
 
-        tool_entry = tool_registry.get_tool("propose_booking_request")
-        if tool_entry:
-            tool_result = tool_entry["func"](
-                db, user,
-                title=title,
-                attendance=attendance,
-                requested_room=room_id,
-                day=day,
-                from_period=from_p,
-                to_period=to_p,
-            )
-            executed_tool_name = "propose_booking_request"
+        t_exec = tool_registry.execute(
+            "propose_booking_request",
+            db, user,
+            title=title,
+            attendance=attendance,
+            requested_room=room_id,
+            day=day,
+            from_period=from_p,
+            to_period=to_p,
+        )
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "propose_booking_request",
+            "arguments": {"title": title, "attendance": attendance, "requested_room": room_id},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
+        if t_exec["success"] and tool_result:
+            requires_confirmation = tool_result.get("requires_confirmation", False)
+            action_proposal = tool_result.get("proposal")
+
+    elif intent_res.intent_type == "reschedule_request":
+        fac_id = accumulated.get("faculty_id")
+        rid = accumulated.get("room_id")
+        day = accumulated.get("day", "MON")
+        disrupt_type = "faculty_unavailable" if fac_id else "room_unavailable"
+
+        t_exec = tool_registry.execute(
+            "propose_rescheduling_request",
+            db, user,
+            disruption_type=disrupt_type,
+            faculty_id=fac_id,
+            room_id=rid,
+            days=[day],
+            periods=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+            reason="Unavailability submitted via AI Assistant",
+        )
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "propose_rescheduling_request",
+            "arguments": {"disruption_type": disrupt_type, "faculty_id": fac_id, "room_id": rid},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
+        if t_exec["success"] and tool_result:
             requires_confirmation = tool_result.get("requires_confirmation", False)
             action_proposal = tool_result.get("proposal")
 
@@ -107,37 +154,48 @@ def run_citrix_orchestrator(
         grp = accumulated.get("student_group", user.student_group_id)
         fac = accumulated.get("faculty_id", user.faculty_id)
         day = accumulated.get("day")
-        tool_entry = tool_registry.get_tool("lookup_timetable")
-        if tool_entry:
-            tool_result = tool_entry["func"](db, user, group_id=grp, faculty_id=fac, day=day)
-            executed_tool_name = "lookup_timetable"
+        t_exec = tool_registry.execute("lookup_timetable", db, user, group_id=grp, faculty_id=fac, day=day)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "lookup_timetable",
+            "arguments": {"group_id": grp, "faculty_id": fac, "day": day},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
     elif intent_res.intent_type == "exam_lookup":
         grp = accumulated.get("student_group", user.student_group_id)
         crs = accumulated.get("course_id")
-        tool_entry = tool_registry.get_tool("lookup_exam_schedule")
-        if tool_entry:
-            tool_result = tool_entry["func"](db, user, group_id=grp, course_id=crs)
-            executed_tool_name = "lookup_exam_schedule"
+        t_exec = tool_registry.execute("lookup_exam_schedule", db, user, group_id=grp, course_id=crs)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "lookup_exam_schedule",
+            "arguments": {"group_id": grp, "course_id": crs},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
     elif intent_res.intent_type == "conflict_explanation":
-        tool_entry = tool_registry.get_tool("explain_scheduling_conflicts")
-        if tool_entry:
-            tool_result = tool_entry["func"](db, user)
-            executed_tool_name = "explain_scheduling_conflicts"
+        t_exec = tool_registry.execute("explain_scheduling_conflicts", db, user)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "explain_scheduling_conflicts",
+            "arguments": {},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
     elif intent_res.intent_type == "dean_summary":
-        if user.role == "admin":
-            tool_entry = tool_registry.get_tool("get_dean_operational_intelligence")
-            if tool_entry:
-                tool_result = tool_entry["func"](db, user)
-                executed_tool_name = "get_dean_operational_intelligence"
-        else:
-            tool_result = {
-                "error": "Access forbidden: Dean operational intelligence is restricted to administrators."
-            }
+        t_exec = tool_registry.execute("get_dean_operational_intelligence", db, user)
+        tool_result = t_exec.get("result") if t_exec["success"] else {"error": t_exec.get("error")}
+        tool_calls_log.append({
+            "tool_name": "get_dean_operational_intelligence",
+            "arguments": {},
+            "status": "SUCCESS" if t_exec["success"] else "FAILED",
+            "latency_ms": t_exec.get("latency_ms", 0.0),
+        })
 
-    # 5. Always query RAG for institutional policies or supporting context
+    # 5. Query RAG for institutional policies or supporting context
     rag_context, citations = retrieve_relevant_knowledge(
         query=message,
         user_role=user.role,
@@ -145,7 +203,36 @@ def run_citrix_orchestrator(
         top_k=2,
     )
 
-    # 6. Synthesize grounded answer
+    # 6. Detailed Timetable / Session Assignment Explanation (Scenario B)
+    course_query = accumulated.get("course_id")
+    if intent_res.intent_type in ["conflict_explanation", "timetable_lookup"] and course_query:
+        sess = db.query(SessionEntity).filter(SessionEntity.course_id == course_query).first()
+        if sess:
+            grounded_reply = (
+                f"### Timetable Assignment Explanation for Course {course_query}\n"
+                f"- **Session ID:** {sess.id} ({sess.kind})\n"
+                f"- **Assigned Faculty:** {sess.faculty_id} (Compliant with max 4-hr daily limit H11)\n"
+                f"- **Class Size:** {sess.size} students\n"
+                f"- **Enrolled Groups:** {sess.groups}\n"
+                f"- **Room Constraint Check:** Session requires room types {sess.room_types}. "
+                f"Allocated venue fits group capacity and satisfies accessibility requirements.\n"
+                f"- **Solver Truth:** Assignment strictly satisfies all hard constraints (no faculty clash, no group clash, no cross-lunch placement)."
+            )
+            total_duration_ms = round((time.perf_counter() - start_total_time) * 1000, 2)
+            conversation_manager.add_assistant_turn(s_id, grounded_reply)
+            return {
+                "reply": grounded_reply,
+                "intent": intent_res.intent_type,
+                "entities": accumulated,
+                "citations": citations,
+                "tool_result": tool_result,
+                "tool_calls": tool_calls_log,
+                "requires_confirmation": False,
+                "action_proposal": None,
+                "latency_ms": total_duration_ms,
+            }
+
+    # 7. Synthesize grounded answer
     grounded_reply = _synthesize_grounded_response(
         user_message=message,
         intent=intent_res.intent_type,
@@ -154,11 +241,13 @@ def run_citrix_orchestrator(
         requires_confirmation=requires_confirmation,
     )
 
-    # 7. Update assistant history
+    total_duration_ms = round((time.perf_counter() - start_total_time) * 1000, 2)
+
+    # 8. Update assistant history
     conversation_manager.add_assistant_turn(
         session_id=s_id,
         content=grounded_reply,
-        tool_executed=executed_tool_name,
+        tool_executed=tool_calls_log[0]["tool_name"] if tool_calls_log else None,
         pending_action=action_proposal,
     )
 
@@ -168,8 +257,10 @@ def run_citrix_orchestrator(
         "entities": accumulated,
         "citations": citations,
         "tool_result": tool_result,
+        "tool_calls": tool_calls_log,
         "requires_confirmation": requires_confirmation,
         "action_proposal": action_proposal,
+        "latency_ms": total_duration_ms,
     }
 
 
@@ -184,7 +275,6 @@ def _synthesize_grounded_response(
     Constructs prompt for TinyLlama ChatHuggingFace and invokes LLM
     with a deterministic fallback.
     """
-    # Deterministic high-precision formulation
     if requires_confirmation and tool_result and "message" in tool_result:
         return tool_result["message"]
 

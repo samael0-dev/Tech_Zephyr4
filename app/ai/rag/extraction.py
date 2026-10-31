@@ -4,10 +4,20 @@ from typing import List, Tuple
 
 from pypdf import PdfReader
 
+# Adversarial prompt injection defense patterns
+PROMPT_INJECTION_PATTERNS = [
+    r"ignore\s+(?:all\s+)?previous\s+instructions",
+    r"system\s+(?:override|prompt)\b",
+    r"you\s+are\s+now\s+(?:in\s+)?god\s+mode",
+    r"developer\s+mode\s+enabled",
+    r"disregard\s+(?:all\s+)?(?:safety|policy|guidelines)",
+    r"bypass\s+(?:rbac|permissions|security)",
+]
+
 
 def clean_text(text: str) -> str:
     """
-    Cleans and normalizes extracted document text.
+    Cleans, normalizes, and sanitizes document text against adversarial prompt injections.
     """
     if not text:
         return ""
@@ -17,6 +27,11 @@ def clean_text(text: str) -> str:
     text = re.sub(r"\n\s*\n", "\n\n", text)
     # Collapse multiple consecutive spaces
     text = re.sub(r" +", " ", text)
+
+    # Neutralize prompt injection attempts in untrusted content
+    for pattern in PROMPT_INJECTION_PATTERNS:
+        text = re.sub(pattern, "[SANITIZED: Disallowed instruction override attempt]", text, flags=re.IGNORECASE)
+
     return text.strip()
 
 
