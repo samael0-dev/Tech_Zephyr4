@@ -12,7 +12,7 @@ from app.models.schedule import ScheduledSession, ScheduleVersion
 from app.models.session import SessionEntity
 from app.schemas.auth import CurrentUser
 from app.services.timetable_service import build_schedule_export, query_timetable_sessions
-from app.services.validator_service import run_official_validator
+from app.services.central_validator import validate_academic_timetable, validate_venue_booking_decision
 
 
 class ToolRegistry:
@@ -272,23 +272,18 @@ def tool_lookup_exam_schedule(db: Session, user: CurrentUser, group_id: Optional
 def tool_explain_scheduling_conflicts(db: Session, user: CurrentUser) -> Dict[str, Any]:
     active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active.is_(True)).first()
     export_payload = build_schedule_export(db)
-    val_res = run_official_validator(export_payload)
+    val_res = validate_academic_timetable(export_payload)
 
-    report = val_res.get("report", {}) if val_res.get("success") else {}
-    hard_violations = report.get("hard_violations", [])
-    hard_by_rule = report.get("hard_by_rule", {})
-    soft_penalties = report.get("soft_penalties", {})
-    warnings = report.get("warnings", [])
-
+    hard_by_rule = val_res.diagnostics.get("hard_by_rule", {})
     return {
         "schedule_active": active_sched.version_name if active_sched else "Baseline",
-        "hard_violations_count": len(hard_violations),
+        "hard_violations_count": val_res.hard_violation_count,
         "hard_violations_by_rule": hard_by_rule,
-        "soft_penalties": soft_penalties,
-        "warnings_sample": warnings[:5],
+        "soft_penalties": val_res.soft_penalties,
+        "warnings_sample": val_res.warnings[:5],
         "solver_explanation": (
-            "No hard violations detected" if len(hard_violations) == 0
-            else f"Detected {len(hard_violations)} hard constraint violations. Primary constraint bottlenecks: {list(hard_by_rule.keys())}."
+            "No hard violations detected" if val_res.hard_violation_count == 0
+            else f"Detected {val_res.hard_violation_count} hard constraint violations. Primary constraint bottlenecks: {list(hard_by_rule.keys())}."
         ),
     }
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
@@ -22,6 +22,7 @@ from app.schemas.booking import (
 )
 from app.schemas.response import ApiResponse
 from app.services.booking_service import create_booking_request, validate_booking_decision
+from app.services.fest_service import evaluate_campus_fest_bookings
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
@@ -280,4 +281,24 @@ def cancel_booking_request(
         success=True,
         data=BookingResponse.model_validate(booking),
         message="Booking request cancelled successfully",
+    )
+
+
+@router.post("/evaluate-fest", response_model=ApiResponse[Dict[str, Any]])
+@router.post("/evaluate", response_model=ApiResponse[Dict[str, Any]])
+def evaluate_fest_bookings_endpoint(
+    request: Request,
+    current_user: CurrentUser = Depends(require_permission(Permission.BOOKING_APPROVE_ALL)),
+    db: Session = Depends(get_db),
+):
+    """
+    Admin-only: Executes the CP-SAT FestWeekEngine to rank, prioritize,
+    and detect displacements for all Spectra Week venue booking requests.
+    """
+    client_ip = request.client.host if request.client else None
+    eval_res = evaluate_campus_fest_bookings(db, current_user, client_ip=client_ip)
+    return ApiResponse(
+        success=True,
+        data=eval_res,
+        message="Spectra Week booking evaluation executed successfully via CP-SAT engine.",
     )

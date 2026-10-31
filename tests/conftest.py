@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.ai.rag.retrieval_service import initialize_default_knowledge_base
 from app.core.database import Base, get_db
+import app.models.canonical  # Ensure all 31 canonical domain tables are registered in Base.metadata
 from app.main import app
 from app.services.data_loader import load_starter_pack_data
 
