@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     bookings,
     dashboards,
     exams,
+    rag,
     reschedule,
     rooms,
     schedules,
@@ -25,5 +26,6 @@ api_router.include_router(bookings.router)
 api_router.include_router(exams.router)
 api_router.include_router(reschedule.router)
 api_router.include_router(assistant.router)
+api_router.include_router(rag.router)
 api_router.include_router(analytics.router)
 api_router.include_router(audit.router)

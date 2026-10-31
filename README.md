@@ -1,12 +1,57 @@
-# Chilika Institute of Technology (CIT) — Campus Operations Platform
+# CITRIX — Campus Management & Operations Platform (Team Delta X)
 
-An Intelligent Campus Operations Platform engineered for Chilika Institute of Technology to generate conflict-free timetables, streamline venue bookings, resolve last-minute disruptions, and enforce robust role-based security.
+An Intelligent Campus Operations Platform engineered for Chilika Institute of Technology (CIT) to generate conflict-free timetables, streamline venue bookings, resolve last-minute disruptions, enforce robust role-based security, and provide an agentic AI operations assistant.
 
 ---
 
-## 1. Architecture & Security Overview
+## 1. CITRIX — RAG & Agentic AI Module
 
-The platform is designed around a **Modular Monolith** architecture with server-side authentication, fine-grained permission control, data isolation, and audit logging.
+CITRIX features an autonomous **RAG and Agentic AI Module** (`app/ai/`) built with `langchain_huggingface` and powered by `TinyLlama/TinyLlama-1.1B-Chat-v1.0`.
+
+```mermaid
+graph TD
+    subgraph UserInteraction["User Interaction"]
+        Msg["User Message (English / Hinglish)"]
+        Confirm["Human Action Confirmation"]
+    end
+
+    subgraph AgenticCore["Agentic AI Orchestrator"]
+        Intent["Intent Classifier & Entity Extractor"]
+        Context["Multi-Turn Context & Slot Manager"]
+        Router{"Operational Intent?"}
+        LLM["TinyLlama ChatHuggingFace"]
+    end
+
+    subgraph RAGPipeline["RAG Knowledge Pipeline"]
+        Store[("Hybrid Vector Store (BM25 + Semantic)")]
+        Docs["Institutional Policies & Rules"]
+        Citations["Source Citations Assembly"]
+    end
+
+    subgraph ToolRegistry["Backend Tool Registry"]
+        T1["lookup_room_availability"]
+        T2["lookup_timetable"]
+        T3["lookup_booking_status"]
+        T4["explain_scheduling_conflicts (Validator)"]
+        T5["get_dean_operational_intelligence"]
+        T6["propose_booking_request (Action Proposal)"]
+    end
+
+    Msg --> Intent --> Context --> Router
+    Router -->|Policy Question| Store --> Citations --> LLM
+    Router -->|Operational Request| ToolRegistry --> LLM
+    ToolRegistry -->|State-Changing| Confirm
+    Confirm -->|Executed| BackendDB[(Database)]
+    LLM --> Response["Grounded Response with Citations"]
+```
+
+### Key AI Features:
+- **English & Hinglish Natural Language Processing:** Handles conversational phrasing like *"Kal SH-1 khali hai kya shaam ko?"* or *"Why was my booking request BR-09 rejected?"*.
+- **Institutional RAG Knowledge Base:** Ingests academic scheduling policies (P1-P9, lunch between P5 & P6, 3-hr lab starts at P2 or P6), Spectra fest rules, exam capacity halving (E2), and emergency disruption protocols.
+- **Traceable Source Citations:** Every retrieved policy response cites document title, category, page, and snippet.
+- **Tool-Calling Integration:** Directly queries room availability, timetable sessions, booking decisions, and the official `validator.py` report.
+- **Confirmation Before Actions:** Any action modifying platform state (creating bookings, applying disruptions) returns `requires_confirmation: true` and must be confirmed by the human user via `/api/v1/assistant/confirm-action`.
+- **Dean's AI Command Intelligence:** Real-time campus briefing (`GET /api/v1/assistant/dean-insights`) highlighting room utilization, bottleneck venues, and alerts.
 
 ```mermaid
 graph TD

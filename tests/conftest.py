@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.ai.rag.retrieval_service import initialize_default_knowledge_base
 from app.core.database import Base, get_db
 from app.main import app
 from app.services.data_loader import load_starter_pack_data
@@ -18,6 +19,7 @@ def setup_test_db():
     Base.metadata.create_all(bind=test_engine)
     db = TestingSessionLocal()
     load_starter_pack_data(db, force_reload=True)
+    initialize_default_knowledge_base(db)
     db.close()
     yield
     Base.metadata.drop_all(bind=test_engine)

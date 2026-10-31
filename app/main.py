@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.ai.rag.retrieval_service import initialize_default_knowledge_base
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import SessionLocal
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         load_starter_pack_data(db)
+        initialize_default_knowledge_base(db)
     finally:
         db.close()
     yield

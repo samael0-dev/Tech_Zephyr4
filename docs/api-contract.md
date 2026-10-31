@@ -268,15 +268,15 @@
 
 ---
 
-## 8. AI Assistant
+## 8. CITRIX AI Assistant & RAG Module
 
 ### `POST /api/v1/assistant/chat`
-- **Access:** Authenticated
+- **Access:** Authenticated (`assistant:chat`)
 - **Request Body:**
 ```json
 {
-  "prompt": "I need to book a seminar hall on Wednesday after 6 PM for 80 students with audio system.",
-  "conversation_history": []
+  "message": "Find an available seminar hall on Monday after 6 PM for 80 students.",
+  "session_id": "optional-session-id"
 }
 ```
 - **Response (200 OK):**
@@ -284,25 +284,92 @@
 {
   "success": true,
   "data": {
-    "reply": "I found an available seminar hall SH-1 on Wednesday from 18:00 to 20:00 (periods 10-11). Here is a prepared booking request you can review and submit.",
-    "structured_request": {
-      "title": "Guest Talk",
-      "attendance": 80,
-      "duration_periods": 2,
-      "requested_category": "guest_lecture",
-      "windows": [{"day": "WED", "from_period": 10, "to_period": 11}],
-      "room_types": ["seminar_hall"],
-      "needs": ["pa_system"],
-      "requested_room": "SH-1"
+    "reply": "Availability for venue SH-1 on MON:\n- Capacity: 150 students\n- Free Periods: P10, P11, P12, P13\n- Occupied Periods: 3 periods occupied",
+    "intent": "room_search",
+    "entities": {
+      "day": "MON",
+      "room_id": "SH-1",
+      "attendance": 80
     },
-    "validation_preview": {
-      "is_valid": true,
-      "conflicts": []
-    }
+    "citations": [
+      {
+        "source_id": "DOC-ROOMS-03",
+        "title": "CIT Venues, Capacities & Permitted Uses Catalog",
+        "category": "resource_catalog",
+        "page": 1,
+        "relevance_score": 3.85,
+        "snippet": "Seminar Hall 1 (SH-1): Academic Block A, Capacity 150..."
+      }
+    ],
+    "tool_result": {
+      "found": true,
+      "room_id": "SH-1",
+      "capacity": 150,
+      "free_periods": [10, 11, 12, 13]
+    },
+    "requires_confirmation": false,
+    "action_proposal": null
   },
-  "message": "Assistant query processed"
+  "message": "Assistant response generated successfully"
 }
 ```
+
+### `POST /api/v1/assistant/confirm-action`
+- **Access:** Authenticated
+- **Description:** Human-in-the-Loop execution endpoint. Modifies database only after user clicks confirm.
+- **Request Body:**
+```json
+{
+  "action_type": "create_booking",
+  "proposal": {
+    "title": "Robotics Exhibition",
+    "attendance": 80,
+    "requested_room": "SH-1",
+    "day": "THU",
+    "from_period": 10,
+    "to_period": 12,
+    "requested_category": "club_event"
+  },
+  "confirmed": true
+}
+```
+- **Response (200 OK):** Status, created `booking_id`, and immutable audit log confirmation.
+
+### `GET /api/v1/assistant/dean-insights`
+- **Access:** Admin only (`role: admin`)
+- **Response (200 OK):** Real-time Dean intelligence briefing, room utilization, bottleneck venues, pending approvals, and active alerts.
+
+---
+
+## 9. RAG Knowledge Base
+
+### `POST /api/v1/rag/search`
+- **Access:** Authenticated
+- **Request Body:**
+```json
+{
+  "query": "Spectra tech fest priority rules",
+  "category": "booking_rule",
+  "top_k": 3
+}
+```
+- **Response (200 OK):** Assembled grounding context and structured citations list.
+
+### `POST /api/v1/rag/documents`
+- **Access:** Admin or Department Coordinator
+- **Request Body:** Ingests raw text or markdown institutional policies into hybrid vector store.
+
+### `POST /api/v1/rag/documents/upload-pdf`
+- **Access:** Admin or Department Coordinator (`multipart/form-data`)
+- **Description:** Uploads, cleans, extracts with `pypdf`, chunks, and indexes a PDF document.
+
+### `GET /api/v1/rag/documents`
+- **Access:** Authenticated
+- **Response (200 OK):** List of all indexed institutional documents.
+
+### `POST /api/v1/rag/reset`
+- **Access:** Admin only
+- **Description:** Re-seeds built-in institutional documents and resets vector index.
 
 ---
 
