@@ -27,7 +27,7 @@ def run_citrix_orchestrator(
     3. Determine whether tool execution, RAG retrieval, or clarification is needed.
     4. Enforce role-based access permissions.
     5. Execute permitted tools and measure tool execution latency.
-    6. Synthesize grounded response using TinyLlama ChatHuggingFace model.
+    6. Synthesize grounded response using ChatGroq (llama-3.1-8b-instant).
     7. Track total end-to-end orchestration latency.
     """
     start_total_time = time.perf_counter()
@@ -272,7 +272,7 @@ def _synthesize_grounded_response(
     requires_confirmation: bool,
 ) -> str:
     """
-    Constructs prompt for TinyLlama ChatHuggingFace and invokes LLM
+    Constructs prompt for ChatGroq and invokes LLM
     with a deterministic fallback.
     """
     if requires_confirmation and tool_result and "message" in tool_result:
@@ -332,7 +332,7 @@ def _synthesize_grounded_response(
             f"{tool_result.get('solver_explanation')}"
         )
 
-    # For policy questions, prepare prompt and invoke TinyLlama ChatHuggingFace
+    # For policy questions, prepare prompt and invoke ChatGroq
     system_msg = SystemMessage(content=CITRIX_SYSTEM_PROMPT)
     user_content = (
         f"User Query: {user_message}\n\n"

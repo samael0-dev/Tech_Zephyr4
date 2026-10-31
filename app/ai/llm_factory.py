@@ -1,62 +1,62 @@
 import logging
+import os
 from typing import List, Optional
 
 from dotenv import load_dotenv
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from langchain_groq import ChatGroq
 
+load_dotenv(".env")
 load_dotenv()
 
 logger = logging.getLogger("citrix.ai")
 
-# Model configuration as requested
-DEFAULT_REPO_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-DEFAULT_TASK = "text-generation"
+# Model configuration as explicitly requested: ChatGroq with llama-3.1-8b-instant and Hinglish support
+DEFAULT_MODEL = "llama-3.1-8b-instant"
+FALLBACK_GROQ_MODEL = "openai/gpt-oss-20b"
+DEFAULT_TEMPERATURE = 0.7
 
-_cached_llm: Optional[HuggingFaceEndpoint] = None
-_cached_chat_model: Optional[ChatHuggingFace] = None
+_cached_chat_model: Optional[BaseChatModel] = None
 
 
-def get_huggingface_llm(
-    repo_id: str = DEFAULT_REPO_ID,
-    task: str = DEFAULT_TASK,
-    temperature: float = 0.2,
-    max_new_tokens: int = 512,
-) -> HuggingFaceEndpoint:
+def get_citrix_chat_model(
+    model: str = DEFAULT_MODEL,
+    temperature: float = DEFAULT_TEMPERATURE,
+) -> BaseChatModel:
     """
-    Instantiates or returns cached HuggingFaceEndpoint for TinyLlama.
-    """
-    global _cached_llm
-    if _cached_llm is None:
-        try:
-            _cached_llm = HuggingFaceEndpoint(
-                repo_id=repo_id,
-                task=task,
-                temperature=temperature,
-                max_new_tokens=max_new_tokens,
-            )
-        except Exception as e:
-            logger.warning(f"Could not initialize HuggingFaceEndpoint directly: {e}")
-            # Initialize with basic parameters
-            _cached_llm = HuggingFaceEndpoint(
-                repo_id=repo_id,
-                task=task,
-            )
-    return _cached_llm
-
-
-def get_citrix_chat_model() -> ChatHuggingFace:
-    """
-    Returns the ChatHuggingFace model wrapping TinyLlama as requested:
-    from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-    llm = HuggingFaceEndpoint(repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0", task="text-generation")
-    model = ChatHuggingFace(llm=llm)
+    Instantiates or returns cached ChatGroq model:
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant",
+        temperature=0.7
+    )
     """
     global _cached_chat_model
     if _cached_chat_model is None:
-        llm_instance = get_huggingface_llm()
-        _cached_chat_model = ChatHuggingFace(llm=llm_instance)
+        api_key = os.getenv("GROQ_API_KEY")
+        try:
+            _cached_chat_model = ChatGroq(
+                model=model,
+                temperature=temperature,
+                api_key=api_key,
+            )
+        except Exception as e:
+            logger.warning(f"Could not initialize ChatGroq with {model}: {e}")
+            try:
+                _cached_chat_model = ChatGroq(
+                    model=FALLBACK_GROQ_MODEL,
+                    temperature=temperature,
+                    api_key=api_key,
+                )
+            except Exception as e2:
+                logger.error(f"Fallback ChatGroq initialization failed: {e2}")
     return _cached_chat_model
+
+
+# Backward compatibility alias
+def get_huggingface_llm(*args, **kwargs):
+    """Deprecated: replaced by ChatGroq for superior Hinglish support."""
+    return get_citrix_chat_model()
 
 
 def invoke_citrix_llm(
@@ -64,18 +64,24 @@ def invoke_citrix_llm(
     fallback_prompt: Optional[str] = None,
 ) -> str:
     """
-    Safely executes chat model invocation.
-    If the endpoint encounters network timeout or API rate limits,
-    gracefully handles and returns a context-grounded fallback.
+    Safely executes ChatGroq model invocation with Hinglish support.
+    If the endpoint encounters rate limit, model availability, or network issues,
+    falls back cleanly without crashing the platform.
     """
-    try:
-        model = get_citrix_chat_model()
-        response = model.invoke(messages)
-        content = response.content if hasattr(response, "content") else str(response)
-        if content and len(content.strip()) > 0:
-            return content.strip()
-    except Exception as exc:
-        logger.info(f"Hugging Face endpoint remote invocation skipped or unavailable: {exc}")
+    api_key = os.getenv("GROQ_API_KEY")
+    for target_model in [DEFAULT_MODEL, FALLBACK_GROQ_MODEL]:
+        try:
+            chat_llm = ChatGroq(
+                model=target_model,
+                temperature=DEFAULT_TEMPERATURE,
+                api_key=api_key,
+            )
+            response = chat_llm.invoke(messages)
+            content = response.content if hasattr(response, "content") else str(response)
+            if content and len(content.strip()) > 0:
+                return content.strip()
+        except Exception as exc:
+            logger.debug(f"ChatGroq invocation with {target_model} failed: {exc}")
 
     # Fallback response for offline or token-free test execution
     return fallback_prompt or "I am CITRIX Assistant. How can I assist you with CIT campus scheduling or bookings?"
