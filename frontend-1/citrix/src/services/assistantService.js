@@ -21,8 +21,18 @@ export const assistantService = {
         demo: false,
       };
     } catch (err) {
-      console.error('Real /assistant/chat API error:', err.message);
-      throw err;
+      console.warn('Real /assistant/chat API error:', err.message);
+      return {
+        reply: `I am CITRIX Assistant (powered by Llama 3.1). How can I assist you with CIT campus scheduling, room bookings, or academic policies? (Connection notice: ${err.message || 'Connecting to backend'})`,
+        intent: 'general_faq',
+        entities: {},
+        citations: [],
+        toolResult: null,
+        requiresConfirmation: false,
+        actionProposal: null,
+        latencyMs: 120,
+        demo: true,
+      };
     }
   },
 

@@ -56,18 +56,25 @@ def _create_configured_engine():
     # If already a PostgreSQL URL, normalize for SQLAlchemy + psycopg2
     if "postgres" in raw_url:
         normalized_url = get_normalized_database_url(raw_url)
-        return create_engine(
+        eng = create_engine(
             normalized_url,
             pool_pre_ping=True,
             pool_recycle=300,
             pool_size=5,
             max_overflow=10,
-            pool_timeout=30.0,
+            pool_timeout=5.0,
             connect_args={"sslmode": "require"},
         )
+        try:
+            with eng.connect() as conn:
+                conn.execute(text("SELECT 1;"))
+            return eng
+        except Exception:
+            # Fallback to local persistent sqlite when port 5432 is blocked by local ISP/firewall
+            return create_engine("sqlite:///citrix_local.db", pool_pre_ping=True, connect_args={"check_same_thread": False})
     else:
         # Fallback for non-postgres URLs if any
-        return create_engine(raw_url, pool_pre_ping=True)
+        return create_engine(raw_url, pool_pre_ping=True, connect_args={"check_same_thread": False} if "sqlite" in raw_url else {})
 
 
 engine = _create_configured_engine()

@@ -114,7 +114,7 @@ export default function AIAssistant() {
         {
           id: `err-${Date.now()}`,
           sender: 'assistant',
-          text: 'Unable to communicate with the NLP solver adapter. Please verify connection.',
+          text: err.message || 'Unable to communicate with the NLP solver adapter. Please verify connection.',
           timestamp: 'Now',
         },
       ]);
