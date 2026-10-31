@@ -13,7 +13,7 @@ In compliance with Section 6 (Implementation Rules) of the CrunchWeek Problem St
   - Dean's AI Command Intelligence Briefing (`GET /api/v1/assistant/dean-insights`)
   - Knowledge Base Semantic Retrieval (`POST /api/v1/rag/search`)
 - **Purpose:** 
-  - Parsing conversational English, Hindi, and colloquial Hinglish booking queries and requests.
+  - Parsing conversational English, Hindi, and  colloquial Hinglish booking queries and requests.
   - Multi-turn conversation slot filling and entity extraction (rooms, times, attendance, student groups, faculty).
   - Grounded question-answering with institutional policy citations (academic scheduling policies, Spectra fest rules, exam capacity rules).
   - Explaining CP-SAT solver conflicts and official validator reports (H1-H13, S1-S6).
