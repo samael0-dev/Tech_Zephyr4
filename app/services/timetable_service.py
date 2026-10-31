@@ -1,15 +1,15 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 from sqlalchemy.orm import Session
 
 from app.core.permissions import RoleEnum
 from app.models.booking import BookingRequest
 from app.models.exam import Exam
-from app.models.faculty import Course, Faculty, StudentGroup
-from app.models.room import Room
+from app.models.faculty import Course, StudentGroup
 from app.models.schedule import ScheduledSession, ScheduleVersion
 from app.models.session import SessionEntity
 from app.schemas.auth import CurrentUser
-from app.schemas.timetable import SessionResponse, TimetableQuery
+from app.schemas.timetable import TimetableQuery
 
 
 def query_timetable_sessions(
@@ -58,7 +58,7 @@ def query_timetable_sessions(
         ]
 
     # Fetch active schedule placements
-    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active == True).first()
+    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active.is_(True)).first()
     placements = {}
     if active_sched:
         scheduled = (
@@ -111,11 +111,11 @@ def build_schedule_export(db: Session, team_name: str = "Tech Zephyr") -> Dict[s
     """
     Constructs the exact schedule.json document structure for official validator.py.
     """
-    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active == True).first()
-    
+    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active.is_(True)).first()
+
     sessions_export = []
     overrides_export = []
-    
+
     if active_sched:
         scheduled = db.query(ScheduledSession).filter(ScheduledSession.schedule_id == active_sched.id).all()
         for sc in scheduled:

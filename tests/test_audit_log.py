@@ -24,5 +24,5 @@ def test_audit_logs_recorded_and_protected(client: TestClient):
     assert len(logs) > 0
 
     # Ensure actions like auth:login_success exist
-    actions = [l["action"] for l in logs]
+    actions = [entry["action"] for entry in logs]
     assert any("auth:login" in a for a in actions)

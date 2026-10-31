@@ -1,18 +1,19 @@
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict
+from typing import Dict
+
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.core.permissions import ROLE_CATEGORY_CAP, RoleEnum
+from app.core.permissions import RoleEnum
 from app.core.security import hash_password
 from app.models.booking import BookingRequest
+from app.models.exam import Exam
 from app.models.faculty import Course, Faculty, StudentGroup
 from app.models.room import Room, RoomUnavailability
 from app.models.session import SessionEntity
-from app.models.exam import Exam
 from app.models.user import User
 
 
@@ -160,7 +161,6 @@ def load_starter_pack_data(db: Session, force_reload: bool = False) -> Dict[str,
         role = br.get("role", "club")
         # Ensure role exists in cap
         role_enum = RoleEnum(role) if role in [r.value for r in RoleEnum] else RoleEnum.CLUB
-        max_cap = ROLE_CATEGORY_CAP.get(role_enum, "club_event")
         effective_cat = br.get("requested_category", "club_event")
         # Cap logic: if club asks for institute_event, cap to club_event
         if role_enum == RoleEnum.CLUB:

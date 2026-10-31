@@ -1,5 +1,6 @@
 from typing import List
-from fastapi import APIRouter, Depends, Request, status
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.audit import log_audit_event
@@ -65,11 +66,11 @@ def generate_exams_schedule(
     Admin-only: Generates midsem exam timetable respecting room capacity halved constraint.
     """
     client_ip = request.client.host if request.client else None
-    
+
     # Baseline exam slot allocation for demonstration
     exams = db.query(Exam).all()
     days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
-    
+
     updated_count = 0
     for idx, ex in enumerate(exams):
         assigned_day = days[idx % len(days)]

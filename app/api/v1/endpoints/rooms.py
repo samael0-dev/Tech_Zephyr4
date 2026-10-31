@@ -1,10 +1,11 @@
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.permissions import Permission
-from app.core.rbac import get_current_user, require_permission
+from app.core.rbac import require_permission
 from app.models.booking import BookingRequest
 from app.models.room import Room, RoomUnavailability
 from app.models.schedule import ScheduledSession

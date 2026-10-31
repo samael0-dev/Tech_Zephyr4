@@ -1,5 +1,7 @@
 from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
+
 from app.models.audit_log import AuditLog
 from app.schemas.auth import CurrentUser
 

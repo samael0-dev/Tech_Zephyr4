@@ -1,10 +1,11 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.permissions import DEPARTMENT_LAB_ROOM_TYPES, Permission, RoleEnum
-from app.core.rbac import get_current_user, require_permission
+from app.core.permissions import DEPARTMENT_LAB_ROOM_TYPES, Permission
+from app.core.rbac import require_permission
 from app.models.booking import BookingRequest
 from app.models.exam import Exam
 from app.models.faculty import Faculty, StudentGroup
@@ -35,7 +36,7 @@ def get_dean_dashboard(
     - Room-period utilization
     """
     total_rooms = db.query(Room).count()
-    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active == True).first()
+    active_sched = db.query(ScheduleVersion).filter(ScheduleVersion.is_active.is_(True)).first()
 
     occupied_rooms = 0
     today_sessions = 0
@@ -183,7 +184,7 @@ def get_coordinator_dashboard(
     dept = current_user.department
     lab_types = DEPARTMENT_LAB_ROOM_TYPES.get(dept or "", [])
     dept_labs = db.query(Room).filter(Room.type.in_(lab_types)).all()
-    lab_ids = [l.id for l in dept_labs]
+    lab_ids = [lab.id for lab in dept_labs]
 
     pending_lab_bookings = (
         db.query(BookingRequest)
@@ -198,7 +199,7 @@ def get_coordinator_dashboard(
         success=True,
         data={
             "department": dept,
-            "department_labs": [{"id": l.id, "name": l.name, "capacity": l.capacity} for l in dept_labs],
+            "department_labs": [{"id": lab.id, "name": lab.name, "capacity": lab.capacity} for lab in dept_labs],
             "pending_lab_approvals_count": len(pending_lab_bookings),
             "pending_lab_requests": [
                 {
@@ -265,17 +266,11 @@ def get_student_dashboard(
     Returns student dashboard: Student group schedule, today's classes, exams, events.
     """
     group_id = current_user.student_group_id
-    group_sessions = (
-        db.query(SessionEntity)
-        .filter(SessionEntity.groups.contains(group_id))
-        .all()
-    )
+    all_sessions = db.query(SessionEntity).all()
+    group_sessions = [s for s in all_sessions if group_id in (s.groups or [])]
 
-    my_exams = (
-        db.query(Exam)
-        .filter(Exam.groups.contains(group_id))
-        .all()
-    )
+    all_exams = db.query(Exam).all()
+    my_exams = [ex for ex in all_exams if group_id in (ex.groups or [])]
 
     upcoming_fest_events = (
         db.query(BookingRequest)

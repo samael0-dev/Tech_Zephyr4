@@ -1,5 +1,6 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+
+from pydantic import BaseModel, ConfigDict
 
 
 class LoginRequest(BaseModel):

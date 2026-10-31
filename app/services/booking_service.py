@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
+
 from sqlalchemy.orm import Session
 
-from app.core.permissions import DEPARTMENT_LAB_ROOM_TYPES, ROLE_CATEGORY_CAP, RoleEnum
+from app.core.permissions import ROLE_CATEGORY_CAP, RoleEnum
 from app.models.booking import BookingRequest
 from app.models.room import Room
-from app.models.user import User
 from app.schemas.auth import CurrentUser
 from app.schemas.booking import BookingCreateRequest, BookingDecisionRequest
 
@@ -85,10 +85,10 @@ def validate_booking_decision(
     if decision_req.decision in ["approved", "alternative_offered"]:
         if not decision_req.room_id or not decision_req.day or not decision_req.start_period or not decision_req.end_period:
             return False, "Day, start_period, end_period, and room_id are required for approval or alternative"
-        
+
         if not target_room:
             return False, f"Room '{decision_req.room_id}' does not exist"
-        
+
         if target_room.capacity < booking.attendance:
             return False, f"Room capacity ({target_room.capacity}) is less than booking attendance ({booking.attendance})"
 

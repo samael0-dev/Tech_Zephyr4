@@ -1,10 +1,11 @@
-from typing import Dict, List, Optional
+from typing import Dict
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.audit import log_audit_event
 from app.core.database import get_db
-from app.core.permissions import Permission, RoleEnum
+from app.core.permissions import Permission
 from app.core.rbac import enforce_no_self_approval, get_current_user, require_permission
 from app.models.audit_log import Disruption
 from app.schemas.auth import CurrentUser

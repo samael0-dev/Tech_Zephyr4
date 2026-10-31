@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
@@ -8,7 +9,6 @@ from app.core.database import get_db
 from app.core.permissions import DEPARTMENT_LAB_ROOM_TYPES, Permission, RoleEnum
 from app.core.rbac import (
     check_booking_approval_authority,
-    enforce_no_self_approval,
     get_current_user,
     require_permission,
 )

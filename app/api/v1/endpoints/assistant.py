@@ -1,11 +1,11 @@
 import re
-from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.permissions import Permission
-from app.core.rbac import get_current_user, require_permission
+from app.core.rbac import require_permission
 from app.models.room import Room
 from app.schemas.auth import CurrentUser
 from app.schemas.dashboard import AssistantChatRequest, AssistantChatResponse

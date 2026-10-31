@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, String, Text
+
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Text
+
 from app.core.database import Base
 from app.models.base import TimestampMixin
 
@@ -25,7 +27,7 @@ class BookingRequest(Base, TimestampMixin):
     mandatory_for_groups = Column(JSON, default=list)
     series_id = Column(String(32), nullable=True)
     raw_text = Column(Text, nullable=True)
-    
+
     # Decision state
     status = Column(String(32), default="pending", nullable=False, index=True)  # pending, approved, rejected, alternative_offered, cancelled
     assigned_day = Column(String(8), nullable=True)

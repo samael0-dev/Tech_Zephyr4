@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, Integer, JSON, String
+from sqlalchemy import JSON, Boolean, Column, Integer, String
+
 from app.core.database import Base
 from app.models.base import TimestampMixin
 

@@ -1,5 +1,6 @@
-from typing import Callable, List, Optional
-from fastapi import Depends, HTTPException, Request, status
+from typing import Callable, Optional
+
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -29,26 +30,26 @@ def get_current_user(
             detail="Authentication credentials were not provided",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     token = credentials.credentials
     payload = decode_access_token(token)
     user_id = payload.get("sub")
-    
+
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+
+    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or deactivated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Calculate permissions dynamically from RoleEnum
     role_enum = RoleEnum(user.role) if user.role in [r.value for r in RoleEnum] else None
     perms = [p.value for p in ROLE_PERMISSIONS.get(role_enum, set())] if role_enum else []
