@@ -1,7 +1,6 @@
 // src/features/admin/MidsemScheduling.jsx
 import React, { useState, useEffect } from 'react';
 import { examService } from '@/services/examService';
-import { MIDSEM_EXAMS, ROOMS, FACULTY, STUDENT_GROUPS } from '@/data/demoData';
 import {
   CalendarRange,
   Sparkles,
@@ -13,29 +12,39 @@ import {
   Download,
   Filter,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Loader2,
+  UploadCloud,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner, StatusBadge } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
 
 export default function MidsemScheduling() {
   const toast = useToast();
-  const [exams, setExams] = useState(MIDSEM_EXAMS);
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'conflicts', 'capacity'
+  const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'conflicts', 'unscheduled'
   const [searchQuery, setSearchQuery] = useState('');
   const [isSolving, setIsSolving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [hasGeneratedProposal, setHasGeneratedProposal] = useState(false);
+
+  const loadExams = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await examService.getExams();
+      setExams(resp.data || []);
+    } catch (err) {
+      console.error('Could not load live exams:', err);
+      setError(err.message || 'Failed to load exams from backend');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadExams() {
-      try {
-        const resp = await examService.getExams();
-        if (resp.data && resp.data.length > 0) {
-          setExams(resp.data);
-        }
-      } catch (err) {
-        console.warn('Could not load live exams:', err);
-      }
-    }
     loadExams();
   }, []);
 
@@ -46,19 +55,31 @@ export default function MidsemScheduling() {
   const handleGenerateExamSchedule = async () => {
     setIsSolving(true);
     try {
-      const resp = await examService.generateSchedule();
+      toast.info('Submitting request to CP-SAT Exam Solver with auto_publish=false...');
+      const resp = await examService.generateSchedule({ time_limit_seconds: 15.0 });
       if (resp.data?.exams && resp.data.exams.length > 0) {
         setExams(resp.data.exams);
+        setHasGeneratedProposal(true);
       }
-      if (resp.demo) {
-        toast.info('Exam seating schedule generated (Demo Fallback)');
-      } else {
-        toast.success(`Exam seating solved (${resp.data?.examsScheduled || 41} exams placed with halved capacity)!`);
-      }
+      toast.success(`Exam proposal generated (${resp.data?.examsScheduled || resp.data?.exams?.length || 0} exams placed with halved capacity)! Review and publish when ready.`);
     } catch (err) {
       toast.error('Failed to trigger exam allocation service: ' + err.message);
     } finally {
       setIsSolving(false);
+    }
+  };
+
+  const handlePublishSchedule = async () => {
+    setIsPublishing(true);
+    try {
+      await examService.publishSchedule(exams);
+      toast.success('Exam schedule successfully published to authoritative campus schedule!');
+      setHasGeneratedProposal(false);
+      loadExams();
+    } catch (err) {
+      toast.error('Failed to publish exam schedule: ' + err.message);
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -67,10 +88,10 @@ export default function MidsemScheduling() {
     if (activeTab === 'unscheduled') return e.status === 'unscheduled';
     if (searchQuery) {
       return (
-        e.course.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.courseTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.group.toLowerCase().includes(searchQuery.toLowerCase())
+        e.course?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.courseTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.room?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.group?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     return true;
@@ -83,14 +104,26 @@ export default function MidsemScheduling() {
         subtitle="Manage 41 midsem exams (Nov 16–25), enforce 50% anti-cheating seating spacing, and resolve venue clashes"
         badge={<DemoBanner text="Exam Allocation Service • Anti-Cheating Capacity" />}
       >
-        <Button
-          variant="primary"
-          onClick={handleGenerateExamSchedule}
-          loading={isSolving}
-          icon={Sparkles}
-        >
-          {isSolving ? 'Optimizing Seating...' : 'Run Exam Seating Solver'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasGeneratedProposal && (
+            <Button
+              variant="emerald"
+              onClick={handlePublishSchedule}
+              loading={isPublishing}
+              icon={UploadCloud}
+            >
+              Publish Proposal
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            onClick={handleGenerateExamSchedule}
+            loading={isSolving}
+            icon={Sparkles}
+          >
+            {isSolving ? 'Optimizing Seating...' : 'Run Exam Seating Solver'}
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Status metrics bar */}
@@ -98,7 +131,7 @@ export default function MidsemScheduling() {
         <Card className="p-4 flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-400 block uppercase font-semibold">Total Exams</span>
-            <span className="text-2xl font-black text-slate-100 mt-1 block">41 Exams</span>
+            <span className="text-2xl font-black text-slate-100 mt-1 block">{exams.length} Exams</span>
             <span className="text-[11px] text-slate-500">14 Student Cohorts</span>
           </div>
           <CalendarRange className="w-8 h-8 text-blue-400/60" />
@@ -126,7 +159,7 @@ export default function MidsemScheduling() {
           <div>
             <span className="text-xs text-red-400 block uppercase font-semibold">Room Clashes</span>
             <span className="text-2xl font-black text-red-400 mt-1 block">{conflictsCount} In Conflict</span>
-            <span className="text-[11px] text-red-300">SH-1 Double Booking</span>
+            <span className="text-[11px] text-red-300">{conflictsCount > 0 ? 'Double Booking Detected' : 'No Clashes Detected'}</span>
           </div>
           <AlertTriangle className="w-8 h-8 text-red-400" />
         </Card>
@@ -139,31 +172,20 @@ export default function MidsemScheduling() {
             <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <div>
               <div className="font-bold text-red-200">
-                CRITICAL EXAM CONFLICT: 2 Exams Assigned to SH-1 on Nov 25 at 09:00 AM
+                CRITICAL EXAM CONFLICT: Scheduling clash detected in current plan
               </div>
               <div className="text-slate-300 mt-0.5">
-                <strong>CS601 (Distributed Systems)</strong> and <strong>EC401 (Microprocessors)</strong> both claim Seminar Hall 1 simultaneously.
+                Multiple exams are assigned to the same room and slot simultaneously. Run CP-SAT seating solver to resolve.
               </div>
             </div>
           </div>
           <Button
             variant="danger"
             size="sm"
-            onClick={() => {
-              // Resolve conflict by moving EC401 to SH-2
-              setExams((prev) =>
-                prev.map((e) =>
-                  e.id === 'ME041'
-                    ? { ...e, room: 'SH-2', status: 'scheduled' }
-                    : e.id === 'ME040'
-                    ? { ...e, status: 'scheduled' }
-                    : e
-                )
-              );
-              toast.success('Clash resolved! EC401 moved to Seminar Hall 2 (SH-2)');
-            }}
+            onClick={handleGenerateExamSchedule}
+            loading={isSolving}
           >
-            Auto-Resolve Clash
+            Auto-Resolve Clashes
           </Button>
         </div>
       )}
@@ -223,60 +245,80 @@ export default function MidsemScheduling() {
               <tr>
                 <th className="py-3 px-4">Exam ID / Course</th>
                 <th className="py-3 px-4">Course Name</th>
-                <th className="py-3 px-4">Date & Time</th>
+                <th className="py-3 px-4">Slot</th>
                 <th className="py-3 px-4">Allocated Room</th>
                 <th className="py-3 px-4">Cohort</th>
-                <th className="py-3 px-4">Normal / Effective Cap</th>
+                <th className="py-3 px-4">Strength</th>
                 <th className="py-3 px-4">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {filteredExams.map((exam) => {
-                const isClash = exam.status === 'conflict';
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                      Loading midsem exams from server...
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-rose-400 bg-rose-950/20">
+                    Error loading exams: {error}
+                  </td>
+                </tr>
+              ) : filteredExams.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    No midsem exams match current filter
+                  </td>
+                </tr>
+              ) : (
+                filteredExams.map((exam) => {
+                  const isClash = exam.status === 'conflict';
 
-                return (
-                  <tr
-                    key={exam.id}
-                    className={`hover:bg-slate-800/50 transition-colors ${
-                      isClash ? 'bg-red-950/20' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-4">
-                      <span className="font-bold text-slate-100">{exam.course}</span>
-                      <span className="text-[10px] text-slate-500 block">{exam.id}</span>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-slate-200">
-                      {exam.courseTitle}
-                    </td>
-                    <td className="py-3 px-4 text-slate-300">
-                      <div>{exam.date}</div>
-                      <div className="text-[11px] text-teal-400 font-mono">
-                        {exam.startTime} – {exam.endTime}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`font-semibold ${
-                          isClash ? 'text-red-400 font-bold' : 'text-slate-100'
-                        }`}
-                      >
-                        {exam.room}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-300">{exam.group}</td>
-                    <td className="py-3 px-4 text-slate-300">
-                      <span className="text-slate-400">{exam.capacity} Normal</span>
-                      <span className="mx-1">/</span>
-                      <span className="font-bold text-teal-400">
-                        {exam.effectiveCapacity} (50% Rule)
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge status={exam.status} />
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr
+                      key={exam.id}
+                      className={`hover:bg-slate-800/50 transition-colors ${
+                        isClash ? 'bg-red-950/20' : ''
+                      }`}
+                    >
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-slate-100">{exam.course}</span>
+                        <span className="text-[10px] text-slate-500 block">{exam.id}</span>
+                      </td>
+                      <td className="py-3 px-4 font-medium text-slate-200">
+                        {exam.courseTitle}
+                      </td>
+                      <td className="py-3 px-4 text-slate-300">
+                        <div>{exam.slot || `${exam.day} (${exam.session})`}</div>
+                        <div className="text-[11px] text-teal-400 font-mono">
+                          Duration: {exam.durationHours} hrs
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`font-semibold ${
+                            isClash ? 'text-red-400 font-bold' : 'text-slate-100'
+                          }`}
+                        >
+                          {exam.room}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-300">{exam.group}</td>
+                      <td className="py-3 px-4 text-slate-300">
+                        <span className="font-bold text-teal-400">{exam.size} Students</span>
+                        <span className="text-[10px] text-slate-500 block">50% Halved Cap Enforced</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <StatusBadge status={exam.status} />
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

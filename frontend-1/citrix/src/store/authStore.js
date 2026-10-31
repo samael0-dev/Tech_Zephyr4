@@ -10,6 +10,7 @@ export const DEMO_CREDENTIALS = {
   'demo-coordinator': { username_or_email: 'coordinator.cse@cit.edu', password: 'password123' },
   'demo-faculty': { username_or_email: 'f01@cit.edu', password: 'password123' },
   'demo-club': { username_or_email: 'coding@cit.edu', password: 'password123' },
+  'demo-student': { username_or_email: 'student.y1a@cit.edu', password: 'password123' },
 };
 
 function normalizeUser(backendUser) {

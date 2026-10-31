@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useBookingStore } from '@/store/bookingStore';
-import { BOOKINGS, SPECTRA_EVENTS, ROOMS, PRIORITY_RULES } from '@/data/demoData';
+import { spectraService } from '@/services/spectraService';
+import { roomService } from '@/services/roomService';
+import { ROOMS } from '@/data/demoData';
 import {
   FileCheck2,
   CheckCircle2,
@@ -14,7 +16,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   Search,
-  Sparkles
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner, Modal, StatusBadge } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
@@ -22,35 +25,90 @@ import { useToast } from '@/components/common/Toaster';
 export default function ApprovalManagement() {
   const toast = useToast();
   const { user } = useAuthStore();
-  const { bookings, fetchBookings, approveBooking, rejectBooking } = useBookingStore();
+  const { bookings, loading: bookingsLoading, error: bookingsError, fetchBookings, approveBooking, rejectBooking } = useBookingStore();
 
   const [activeTab, setActiveTab] = useState('bookings'); // 'bookings' or 'spectra'
   const [selectedItems, setSelectedItems] = useState([]);
+  const [spectraEvents, setSpectraEvents] = useState([]);
+  const [spectraLoading, setSpectraLoading] = useState(false);
+  const [spectraError, setSpectraError] = useState(null);
+  const [roomsList, setRoomsList] = useState([]);
+
+  const loadSpectra = async () => {
+    setSpectraLoading(true);
+    setSpectraError(null);
+    try {
+      const res = await spectraService.getEvents();
+      setSpectraEvents(res.data || []);
+    } catch (err) {
+      setSpectraError(err.message || 'Failed to load Spectra events');
+      setSpectraEvents([]);
+    } finally {
+      setSpectraLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchBookings();
+    loadSpectra();
+    roomService.getRooms().then(res => {
+      if (res.data?.length) setRoomsList(res.data);
+    }).catch(() => {});
   }, [fetchBookings]);
 
   // Modal for rejection
   const [rejectingItem, setRejectingItem] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('Venue required for midsem exams');
+  const [rejectionReason, setRejectionReason] = useState('Venue required for institutional priority schedule');
   const [alternativeVenue, setAlternativeVenue] = useState('SH-2');
 
-  const allBookings = bookings.length > 0 ? bookings : BOOKINGS;
-  const pendingBookings = allBookings.filter((b) => b.status === 'pending');
-  const pendingSpectra = SPECTRA_EVENTS.filter((e) => e.status === 'pending');
+  const pendingBookings = (bookings || []).filter((b) => b.status === 'pending');
+  const pendingSpectra = (spectraEvents || []).filter((e) => e.status === 'pending');
+  const availableRooms = roomsList.length > 0 ? roomsList : ROOMS;
 
-  const handleApproveBooking = async (id, title, requester) => {
+  const handleApproveBooking = async (booking) => {
+    const id = booking.id;
+    const title = booking.title;
+    const requester = booking.requestedBy;
+
     // Check self-approval
-    if (requester === user?.role || (user?.role === 'admin' && requester === 'admin') || requester === user?.id || requester === user?.name) {
+    if (
+      requester === user?.role ||
+      (user?.role === 'admin' && requester === 'admin') ||
+      requester === user?.id ||
+      requester === user?.email ||
+      requester === user?.name
+    ) {
       toast.error('Self-Approval Restricted: You cannot approve your own booking application.');
       return;
     }
     try {
-      await approveBooking(id);
+      const placement = {
+        room_id: booking.room !== 'TBD' ? booking.room : (booking.requested_room || 'L-101'),
+        day: booking.day !== 'TBD' ? booking.day : (booking.windows?.[0]?.day || 'MON'),
+        start_period: booking.assigned_start_period || booking.windows?.[0]?.from_period || 6,
+        end_period: booking.assigned_end_period || booking.windows?.[0]?.to_period || 7,
+      };
+      await approveBooking(id, placement);
       toast.success(`Booking "${title}" approved!`);
     } catch (err) {
       toast.error(err.message || 'Approval rejected by institutional policy');
+    }
+  };
+
+  const handleApproveSpectra = async (event) => {
+    try {
+      const placement = {
+        room_id: event.room !== 'TBD' ? event.room : (event.requestedRoom || 'AUD'),
+        day: event.day || 'FRI',
+        start_period: event.startPeriod || 6,
+        end_period: event.endPeriod || 8,
+        reason: 'Approved by Spectra Committee',
+      };
+      await spectraService.approveEvent(event.id, placement);
+      toast.success(`Spectra event "${event.title}" approved!`);
+      loadSpectra();
+    } catch (err) {
+      toast.error(err.message || 'Spectra approval failed');
     }
   };
 
@@ -61,18 +119,40 @@ export default function ApprovalManagement() {
   const handleConfirmReject = async () => {
     if (!rejectingItem) return;
     try {
-      await rejectBooking(rejectingItem.id, rejectionReason, alternativeVenue);
-      toast.info(`Rejected "${rejectingItem.title}". Alternative suggested: ${alternativeVenue}`);
+      if (activeTab === 'spectra') {
+        await spectraService.rejectEvent(rejectingItem.id, rejectionReason, alternativeVenue);
+        toast.info(`Rejected Spectra event "${rejectingItem.title}". Alternative: ${alternativeVenue}`);
+        loadSpectra();
+      } else {
+        await rejectBooking(rejectingItem.id, rejectionReason, { room_id: alternativeVenue });
+        toast.info(`Rejected "${rejectingItem.title}". Alternative suggested: ${alternativeVenue}`);
+      }
     } catch (err) {
       toast.error(err.message || 'Rejection failed');
     }
     setRejectingItem(null);
   };
 
-  const handleBulkApprove = () => {
+  const handleBulkApprove = async () => {
     if (selectedItems.length === 0) return;
-    selectedItems.forEach((id) => approveBooking(id));
-    toast.success(`${selectedItems.length} items bulk approved!`);
+    let approvedCount = 0;
+    for (const id of selectedItems) {
+      const item = (bookings || []).find(b => b.id === id);
+      if (item) {
+        try {
+          await approveBooking(id, {
+            room_id: item.room !== 'TBD' ? item.room : (item.requested_room || 'L-101'),
+            day: item.day !== 'TBD' ? item.day : (item.windows?.[0]?.day || 'MON'),
+            start_period: item.assigned_start_period || item.windows?.[0]?.from_period || 6,
+            end_period: item.assigned_end_period || item.windows?.[0]?.to_period || 7,
+          });
+          approvedCount++;
+        } catch (e) {
+          console.error(`Failed to bulk approve ${id}:`, e);
+        }
+      }
+    }
+    toast.success(`${approvedCount} items bulk approved!`);
     setSelectedItems([]);
   };
 
@@ -117,7 +197,16 @@ export default function ApprovalManagement() {
       {/* Booking Requests List */}
       {activeTab === 'bookings' ? (
         <div className="space-y-3">
-          {pendingBookings.length === 0 ? (
+          {bookingsLoading ? (
+            <Card className="p-12 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+              Loading bookings from server...
+            </Card>
+          ) : bookingsError ? (
+            <Card className="p-8 text-center text-sm text-rose-400 bg-rose-950/20 border-rose-900/40">
+              Error loading bookings: {bookingsError}
+            </Card>
+          ) : pendingBookings.length === 0 ? (
             <Card className="p-12 text-center text-sm text-slate-500">
               No pending venue reservations in queue
             </Card>
@@ -125,7 +214,9 @@ export default function ApprovalManagement() {
             pendingBookings.map((b) => {
               const isSelf =
                 b.requestedBy === user?.role ||
-                (user?.role === 'admin' && b.requestedBy === 'admin');
+                (user?.role === 'admin' && b.requestedBy === 'admin') ||
+                b.requestedBy === user?.email ||
+                b.requestedBy === user?.name;
 
               return (
                 <Card
@@ -161,16 +252,16 @@ export default function ApprovalManagement() {
                       <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
                         <span>Venue: <strong className="text-slate-200">{b.room}</strong></span>
                         <span>•</span>
-                        <span>Date: <strong className="text-slate-200">{b.date}</strong> ({b.startTime} - {b.endTime})</span>
+                        <span>Day/Time: <strong className="text-slate-200">{b.day} ({b.time})</strong></span>
                         <span>•</span>
-                        <span>Attendees: {b.attendees}</span>
+                        <span>Attendees: {b.attendance}</span>
                         <span>•</span>
                         <span>Requester: <strong className="text-slate-300 capitalize">{b.requestedBy}</strong></span>
                       </div>
 
-                      {b.nlText && (
+                      {b.raw_text && (
                         <p className="text-[11px] text-blue-300 italic mt-1.5">
-                          "{b.nlText}"
+                          "{b.raw_text}"
                         </p>
                       )}
                     </div>
@@ -181,7 +272,7 @@ export default function ApprovalManagement() {
                       variant="emerald"
                       size="sm"
                       disabled={isSelf}
-                      onClick={() => handleApproveBooking(b.id, b.title, b.requestedBy)}
+                      onClick={() => handleApproveBooking(b)}
                     >
                       Approve
                     </Button>
@@ -201,7 +292,16 @@ export default function ApprovalManagement() {
       ) : (
         /* Spectra Events Tab */
         <div className="space-y-3">
-          {pendingSpectra.length === 0 ? (
+          {spectraLoading ? (
+            <Card className="p-12 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+              Loading Spectra events from server...
+            </Card>
+          ) : spectraError ? (
+            <Card className="p-8 text-center text-sm text-rose-400 bg-rose-950/20 border-rose-900/40">
+              Error loading Spectra events: {spectraError}
+            </Card>
+          ) : pendingSpectra.length === 0 ? (
             <Card className="p-12 text-center text-sm text-slate-500">
               No pending Spectra festival proposals in queue
             </Card>
@@ -217,7 +317,7 @@ export default function ApprovalManagement() {
                       {event.title}
                     </span>
                     <Badge variant="purple" size="sm">
-                      {event.priority} Priority
+                      Priority P{event.priority || 6}
                     </Badge>
                     <span className="text-xs text-slate-400 font-medium">
                       Club: {event.club}
@@ -227,9 +327,9 @@ export default function ApprovalManagement() {
                   <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3">
                     <span>Venue: <strong className="text-slate-200">{event.requestedRoom}</strong></span>
                     <span>•</span>
-                    <span>Date: {event.date} ({event.startTime} - {event.endTime})</span>
+                    <span>Slot: {event.day} (P{event.startPeriod}-P{event.endPeriod})</span>
                     <span>•</span>
-                    <span>Estimated: {event.attendees} pax</span>
+                    <span>Estimated: {event.attendance} pax</span>
                   </div>
                 </div>
 
@@ -237,9 +337,7 @@ export default function ApprovalManagement() {
                   <Button
                     variant="emerald"
                     size="sm"
-                    onClick={() => {
-                      toast.success(`Spectra event "${event.title}" approved!`);
-                    }}
+                    onClick={() => handleApproveSpectra(event)}
                   >
                     Approve
                   </Button>
@@ -286,9 +384,9 @@ export default function ApprovalManagement() {
                 onChange={(e) => setAlternativeVenue(e.target.value)}
                 className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               >
-                {ROOMS.map((r) => (
+                {availableRooms.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name} ({r.type}, {r.capacity} seats) — {r.building}
+                    {r.name || r.id} ({r.type}, {r.capacity} seats) — {r.building}
                   </option>
                 ))}
               </select>

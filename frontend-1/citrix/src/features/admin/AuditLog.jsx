@@ -13,26 +13,32 @@ import {
   User,
   Clock,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
 
 export default function AuditLog() {
   const toast = useToast();
-  const [logs, setLogs] = useState(AUDIT_LOGS);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filterAction, setFilterAction] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function loadLogs() {
+      setLoading(true);
+      setError(null);
       try {
         const resp = await auditService.getLogs();
-        if (resp.data && resp.data.length > 0) {
-          setLogs(resp.data);
-        }
+        setLogs(resp.data || []);
       } catch (err) {
-        console.warn('Could not load live audit logs:', err);
+        console.error('Could not load live audit logs:', err);
+        setError(err.message || 'Failed to load audit logs from server');
+      } finally {
+        setLoading(false);
       }
     }
     loadLogs();
@@ -116,7 +122,21 @@ export default function AuditLog() {
 
       {/* Audit Log Entries List */}
       <Card className="divide-y divide-slate-800/80 overflow-hidden">
-        {filteredLogs.map((log) => (
+        {loading ? (
+          <div className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            Loading cryptographic audit logs from server...
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-xs text-rose-400 bg-rose-950/20">
+            Error loading audit trail: {error}
+          </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="p-12 text-center text-xs text-slate-500">
+            No audit log entries found matching criteria.
+          </div>
+        ) : (
+          filteredLogs.map((log) => (
           <div
             key={log.id}
             className="p-4 hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
@@ -146,7 +166,7 @@ export default function AuditLog() {
               Signed &amp; Verified
             </div>
           </div>
-        ))}
+        )))}
       </Card>
     </div>
   );

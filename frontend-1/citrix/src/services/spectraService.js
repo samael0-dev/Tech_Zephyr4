@@ -1,6 +1,5 @@
 // src/services/spectraService.js
 import { apiClient } from './apiClient';
-import { mockGetSpectra, mockApproveSpectra, mockRejectSpectra } from './mockAdapter';
 
 function normalizeSpectraEvent(item) {
   const reqRoom = item.requested_room || item.assigned_room_id || item.room || 'AUD';
@@ -19,8 +18,8 @@ function normalizeSpectraEvent(item) {
     startPeriod: item.assigned_start_period || item.start_period || 6,
     endPeriod: item.assigned_end_period || item.end_period || 8,
     status: item.status || 'pending',
-    priority: item.priority || (item.effective_category === 'institute_event' ? 1 : 4),
-    category: item.effective_category || item.requested_category || item.category || 'Technical',
+    priority: item.priority || (item.effective_category === 'institute_event' ? 3 : 6),
+    category: item.effective_category || item.requested_category || item.category || 'club_event',
     attendance: item.attendance || 100,
     displacements: item.displacements || item.displaced_sessions || [],
     reason: item.decision_reason || item.reason,
@@ -28,7 +27,7 @@ function normalizeSpectraEvent(item) {
 }
 
 export const spectraService = {
-  getEvents: async (filters = {}) => {
+  getEvents: async () => {
     try {
       const data = await apiClient.get('/bookings');
       const list = Array.isArray(data) ? data : data?.bookings || [];
@@ -44,8 +43,8 @@ export const spectraService = {
       const target = spectraList.length > 0 ? spectraList : list;
       return { data: target.map(normalizeSpectraEvent), demo: false };
     } catch (err) {
-      console.warn('Real /bookings API unavailable for spectra, using fallback:', err.message);
-      return mockGetSpectra(filters);
+      console.error('Real /bookings API error for spectra:', err.message);
+      throw err;
     }
   },
 
@@ -54,35 +53,59 @@ export const spectraService = {
       const data = await apiClient.post('/bookings/evaluate');
       return { data, demo: false };
     } catch (err) {
-      console.warn('Real /bookings/evaluate API unavailable:', err.message);
-      return { data: null, demo: true };
+      console.error('Real /bookings/evaluate API error:', err.message);
+      throw err;
     }
   },
 
-  approveEvent: async (id, reason = 'Approved by Spectra Committee') => {
+  approveEvent: async (id, decisionParams = {}) => {
     try {
-      const data = await apiClient.post(`/bookings/${id}/decision`, {
+      let placement = typeof decisionParams === 'string'
+        ? { reason: decisionParams }
+        : { ...decisionParams };
+
+      if (!placement.room_id || !placement.day || !placement.start_period || !placement.end_period) {
+        try {
+          const existing = await apiClient.get(`/bookings/${id}`);
+          if (existing) {
+            placement.room_id = placement.room_id || existing.assigned_room_id || existing.requested_room || 'AUD';
+            placement.day = placement.day || existing.assigned_day || existing.windows?.[0]?.day || 'FRI';
+            placement.start_period = placement.start_period ?? existing.assigned_start_period ?? existing.windows?.[0]?.from_period ?? 6;
+            placement.end_period = placement.end_period ?? existing.assigned_end_period ?? existing.windows?.[0]?.to_period ?? ((placement.start_period || 6) + (existing.duration_periods || 2) - 1);
+          }
+        } catch (fetchErr) {
+          console.warn(`Could not pre-fetch booking ${id} details for Spectra approval:`, fetchErr.message);
+        }
+      }
+
+      const payload = {
         decision: 'approved',
-        reason,
-      });
+        day: placement.day,
+        start_period: Number(placement.start_period),
+        end_period: Number(placement.end_period),
+        room_id: placement.room_id,
+        reason: placement.reason || 'Approved by Spectra Committee',
+      };
+      const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeSpectraEvent(data), demo: false };
     } catch (err) {
-      console.warn(`Real /bookings/${id}/decision approve failed:`, err.message);
-      return mockApproveSpectra(id, reason);
+      console.error(`Real /bookings/${id}/decision approve failed:`, err.message);
+      throw err;
     }
   },
 
   rejectEvent: async (id, reason = 'Scheduling conflict', alternativeRoom = null) => {
     try {
-      const data = await apiClient.post(`/bookings/${id}/decision`, {
+      const payload = {
         decision: alternativeRoom ? 'alternative_offered' : 'rejected',
-        reason,
-        room_id: alternativeRoom,
-      });
+        reason: reason || 'Scheduling conflict during fest week',
+        room_id: alternativeRoom || null,
+      };
+      const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeSpectraEvent(data), demo: false };
     } catch (err) {
-      console.warn(`Real /bookings/${id}/decision reject failed:`, err.message);
-      return mockRejectSpectra(id, reason, alternativeRoom);
+      console.error(`Real /bookings/${id}/decision reject failed:`, err.message);
+      throw err;
     }
   },
 };

@@ -1,6 +1,5 @@
 // src/services/examService.js
 import { apiClient } from './apiClient';
-import { mockGetMidsemExams, mockGenerateMidsemSchedule } from './mockAdapter';
 
 function normalizeExam(e) {
   const courseId = e.course_ids?.[0] || e.courseId || e.course || 'CS101';
@@ -29,30 +28,32 @@ function normalizeExam(e) {
 }
 
 export const examService = {
-  getExams: async (filters = {}) => {
+  getExams: async () => {
     try {
       const data = await apiClient.get('/exams');
       const list = Array.isArray(data) ? data : data?.exams || [];
       return { data: list.map(normalizeExam), demo: false };
     } catch (err) {
-      console.warn('Real /exams API unavailable, using fallback:', err.message);
-      return mockGetMidsemExams(filters);
+      console.error('Real /exams API error:', err.message);
+      throw err;
     }
   },
 
   generateSchedule: async (params = {}) => {
     try {
-      const data = await apiClient.post('/exams/generate', {
-        time_limit_seconds: params.time_limit_seconds || 15.0,
-        auto_publish: false, // Keep proposal-first: user reviews before publishing
-      });
+      // NOTE: FastAPI /exams/generate expects time_limit_seconds and auto_publish as QUERY parameters
+      const timeout = params.time_limit_seconds || 15.0;
+      const data = await apiClient.post(
+        `/exams/generate?time_limit_seconds=${timeout}&auto_publish=false`,
+        null
+      );
 
       const assignments = (data.assignments || []).map(normalizeExam);
       return {
         data: {
           status: data.status || 'success',
           is_feasible: data.is_feasible,
-          examsScheduled: data.total_exams_scheduled || assignments.length || 41,
+          examsScheduled: data.total_exams_scheduled || assignments.length || 0,
           conflicts: data.validation?.hard_violation_count || 0,
           softPenalty: data.soft_penalty || 0,
           assignments,
@@ -63,8 +64,8 @@ export const examService = {
         demo: false,
       };
     } catch (err) {
-      console.warn('Real /exams/generate API unavailable, using fallback:', err.message);
-      return mockGenerateMidsemSchedule();
+      console.error('Real /exams/generate API error:', err.message);
+      throw err;
     }
   },
 

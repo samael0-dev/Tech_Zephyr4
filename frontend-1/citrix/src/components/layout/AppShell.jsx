@@ -128,23 +128,45 @@ export default function AppShell({ children }) {
       ];
     }
 
-    // Club Representative
+    if (role === 'club') {
+      return [
+        {
+          group: 'STUDENT CLUB WORKSPACE',
+          items: [
+            { label: 'Club Hub', icon: LayoutDashboard, path: '/club' },
+            { label: '3D Campus Explorer', icon: Boxes, path: '/campus', highlight: true },
+            { label: 'Explore Venues', icon: Building, path: '/rooms' },
+          ],
+        },
+        {
+          group: 'VENUE BOOKING',
+          items: [
+            { label: 'Smart AI Booking (NL)', icon: Sparkles, path: '/bookings/new/nl', highlight: true },
+            { label: 'Manual Booking Form', icon: CalendarCheck2, path: '/bookings/new' },
+            { label: 'Booking Status & History', icon: Layers, path: '/bookings' },
+            { label: 'AI Assistant', icon: MessageSquare, path: '/assistant' },
+            { label: 'Notifications', icon: Bell, path: '/notifications' },
+          ],
+        },
+      ];
+    }
+
+    // Student (5th Role)
     return [
       {
-        group: 'STUDENT CLUB WORKSPACE',
+        group: 'STUDENT PORTAL',
         items: [
-          { label: 'Club Hub', icon: LayoutDashboard, path: '/club' },
-          { label: '3D Campus Explorer', icon: Boxes, path: '/campus', highlight: true },
-          { label: 'Explore Venues', icon: Building, path: '/rooms' },
+          { label: 'My Dashboard', icon: LayoutDashboard, path: '/student' },
+          { label: '3D Campus Map', icon: Boxes, path: '/campus', highlight: true },
+          { label: 'My Timetable', icon: CalendarDays, path: '/timetable/weekly' },
+          { label: 'Examinations', icon: CalendarRange, path: '/timetable/daily' },
         ],
       },
       {
-        group: 'VENUE BOOKING',
+        group: 'STUDENT SERVICES',
         items: [
-          { label: 'Smart AI Booking (NL)', icon: Sparkles, path: '/bookings/new/nl', highlight: true },
-          { label: 'Manual Booking Form', icon: CalendarCheck2, path: '/bookings/new' },
-          { label: 'Booking Status & History', icon: Layers, path: '/bookings' },
-          { label: 'AI Assistant', icon: MessageSquare, path: '/assistant' },
+          { label: 'AI Campus Assistant', icon: Sparkles, path: '/assistant', highlight: true },
+          { label: 'Room Directory', icon: Building, path: '/rooms' },
           { label: 'Notifications', icon: Bell, path: '/notifications' },
         ],
       },
@@ -161,6 +183,7 @@ export default function AppShell({ children }) {
     else if (target?.role === 'coordinator') navigate('/coordinator');
     else if (target?.role === 'faculty') navigate('/faculty');
     else if (target?.role === 'club') navigate('/club');
+    else if (target?.role === 'student') navigate('/student');
   };
 
   const roleBadgeVariants = {
@@ -168,6 +191,7 @@ export default function AppShell({ children }) {
     coordinator: 'teal',
     faculty: 'purple',
     club: 'amber',
+    student: 'green',
   };
 
   const roleLabelMap = {
@@ -175,6 +199,7 @@ export default function AppShell({ children }) {
     coordinator: 'Dept Coordinator (CSE)',
     faculty: 'Faculty (Prof. Kumar)',
     club: 'Club Representative',
+    student: 'Student (Cohort Y1-A)',
   };
 
   return (

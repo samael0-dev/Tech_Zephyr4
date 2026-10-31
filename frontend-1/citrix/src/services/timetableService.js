@@ -1,6 +1,5 @@
 // src/services/timetableService.js
 import { apiClient } from './apiClient';
-import { mockGetSessions, mockGenerateTimetable } from './mockAdapter';
 
 const DAY_ABBR_TO_FULL = {
   MON: 'Monday',
@@ -76,8 +75,8 @@ export const timetableService = {
       const normalized = list.map(normalizeSession);
       return { data: normalized, demo: false };
     } catch (err) {
-      console.warn('Real /timetable API unavailable, using fallback:', err.message);
-      return mockGetSessions(filters);
+      console.error('Real /timetable API error:', err.message);
+      throw err;
     }
   },
 
@@ -93,7 +92,7 @@ export const timetableService = {
           status: data.status || 'success',
           schedule_id: data.id,
           sessions: [],
-          scheduled: data.sessions_count || 189,
+          scheduled: data.sessions_count || 0,
           unscheduled: 0,
           conflicts: data.hard_violations_count || 0,
           softViolations: Math.round(data.soft_penalty_score || 0),
@@ -104,8 +103,8 @@ export const timetableService = {
         demo: false,
       };
     } catch (err) {
-      console.warn('Real /schedules/generate API unavailable, using fallback:', err.message);
-      return mockGenerateTimetable(config);
+      console.error('Real /schedules/generate API error:', err.message);
+      throw err;
     }
   },
 
@@ -118,8 +117,8 @@ export const timetableService = {
       const data = await apiClient.get('/schedules/versions');
       return { data: Array.isArray(data) ? data : [], demo: false };
     } catch (err) {
-      console.warn('Real /schedules/versions API unavailable:', err.message);
-      return { data: [], demo: true };
+      console.error('Real /schedules/versions API error:', err.message);
+      throw err;
     }
   },
 
@@ -133,8 +132,9 @@ export const timetableService = {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       return { data: { url, format, demo: false } };
-    } catch {
-      return { data: { url: '#', demo: true } };
+    } catch (err) {
+      console.error('Real export timetable error:', err.message);
+      throw err;
     }
   },
 };

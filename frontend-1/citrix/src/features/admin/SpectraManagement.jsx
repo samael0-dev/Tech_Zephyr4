@@ -1,7 +1,8 @@
 // src/features/admin/SpectraManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { spectraService } from '@/services/spectraService';
-import { SPECTRA_EVENTS, ROOMS, PRIORITY_RULES } from '@/data/demoData';
+import { roomService } from '@/services/roomService';
+import { ROOMS, PRIORITY_RULES } from '@/data/demoData';
 import {
   CalendarCheck2,
   Sparkles,
@@ -14,30 +15,42 @@ import {
   Search,
   Filter,
   ShieldCheck,
-  ChevronDown
+  ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner, StatusBadge, Modal } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
 
 export default function SpectraManagement() {
   const toast = useToast();
-  const [events, setEvents] = useState(SPECTRA_EVENTS);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [roomsList, setRoomsList] = useState([]);
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    async function loadEvents() {
-      try {
-        const resp = await spectraService.getEvents();
-        if (resp.data && resp.data.length > 0) {
-          setEvents(resp.data);
-        }
-      } catch (err) {
-        console.warn('Could not load live spectra events:', err);
-      }
+  const loadEvents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await spectraService.getEvents();
+      setEvents(resp.data || []);
+    } catch (err) {
+      console.error('Could not load live spectra events:', err);
+      setError(err.message || 'Failed to load Spectra events from server');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadEvents();
+    roomService.getRooms().then(res => {
+      if (res.data?.length) setRoomsList(res.data);
+    }).catch(() => {});
   }, []);
 
   // Modals for approval and rejection
@@ -47,15 +60,16 @@ export default function SpectraManagement() {
   const [alternativeRoom, setAlternativeRoom] = useState('SH-2');
 
   const categories = ['All', 'Technical', 'Cultural', 'Academic', 'Social', 'Sports'];
+  const availableRooms = roomsList.length > 0 ? roomsList : ROOMS;
 
   const filteredEvents = events.filter((e) => {
     if (selectedCategory !== 'All' && e.category !== selectedCategory) return false;
     if (selectedStatus !== 'All' && e.status !== selectedStatus) return false;
     if (searchQuery) {
       return (
-        e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.club.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.requestedRoom.toLowerCase().includes(searchQuery.toLowerCase())
+        e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.club?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.requestedRoom?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     return true;
@@ -76,66 +90,105 @@ export default function SpectraManagement() {
     if (!actionEvent) return;
 
     if (actionType === 'approve') {
-      await spectraService.approveEvent(actionEvent.id, decisionReason);
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === actionEvent.id
-            ? { ...e, status: 'approved', reason: decisionReason }
-            : e
-        )
-      );
-      toast.success(`Event "${actionEvent.title}" approved`);
+      const placement = {
+        room_id: actionEvent.room !== 'TBD' ? actionEvent.room : (actionEvent.requestedRoom || 'AUD'),
+        day: actionEvent.day || 'FRI',
+        start_period: actionEvent.startPeriod || 6,
+        end_period: actionEvent.endPeriod || 8,
+        reason: decisionReason,
+      };
+
+      try {
+        await spectraService.approveEvent(actionEvent.id, placement);
+        setEvents((prev) =>
+          prev.map((e) =>
+            e.id === actionEvent.id
+              ? { ...e, status: 'approved', reason: decisionReason }
+              : e
+          )
+        );
+        toast.success(`Event "${actionEvent.title}" approved`);
+      } catch (err) {
+        toast.error(err.message || 'Approval failed');
+      }
     } else {
-      await spectraService.rejectEvent(
-        actionEvent.id,
-        decisionReason,
-        alternativeRoom
-      );
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === actionEvent.id
-            ? {
-                ...e,
-                status: 'rejected',
-                reason: decisionReason,
-                alternativeRoom,
-              }
-            : e
-        )
-      );
-      toast.info(`Event "${actionEvent.title}" rejected. Alternative suggested: ${alternativeRoom}`);
+      try {
+        await spectraService.rejectEvent(
+          actionEvent.id,
+          decisionReason,
+          alternativeRoom
+        );
+        setEvents((prev) =>
+          prev.map((e) =>
+            e.id === actionEvent.id
+              ? {
+                  ...e,
+                  status: 'rejected',
+                  reason: decisionReason,
+                  suggestedRoom: alternativeRoom,
+                }
+              : e
+          )
+        );
+        toast.info(
+          `Event "${actionEvent.title}" rejected. Alternative venue: ${alternativeRoom}`
+        );
+      } catch (err) {
+        toast.error(err.message || 'Rejection failed');
+      }
     }
 
     setActionEvent(null);
   };
 
+  const handleRunEvaluation = async () => {
+    try {
+      toast.info('Running CP-SAT Fest Week Venue Optimizer...');
+      await spectraService.evaluateEvents();
+      toast.success('CP-SAT evaluation completed. Preemption and assignment plan updated.');
+      loadEvents();
+    } catch (err) {
+      toast.error(err.message || 'Optimizer evaluation failed');
+    }
+  };
+
   const priorityBadgeMap = {
-    'Very High': 'red',
-    High: 'amber',
-    Medium: 'blue',
-    Low: 'slate',
+    1: 'red',
+    2: 'amber',
+    3: 'purple',
+    4: 'blue',
+    5: 'teal',
+    6: 'emerald',
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Spectra Week Event Management"
-        subtitle="Review 25 campus club venue proposals, apply Section 4 priority hierarchy, and recommend alternatives"
-        badge={<DemoBanner text="Priority-Based Allocation Rule Engine" />}
-      />
+        title="Spectra Fest Week Venue Decision Desk"
+        subtitle="Schedule and adjudicate 34 club event bids against curricular academic priorities"
+        badge={<DemoBanner text="CP-SAT Disruption Optimizer & Priority-Tier Governance" />}
+      >
+        <Button
+          variant="primary"
+          onClick={handleRunEvaluation}
+          icon={Sparkles}
+        >
+          Evaluate & Optimise Allocations
+        </Button>
+      </PageHeader>
 
-      {/* Priority Rules Reference Accordion / Card */}
-      <Card className="p-4 bg-slate-900/90 border-blue-500/20">
-        <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-2">
+      {/* 6-Tier Priority Legend */}
+      <Card className="p-4 space-y-2">
+        <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-1.5">
           <ShieldCheck className="w-4 h-4 text-blue-400" />
-          Spectra Week Institutional Priority Hierarchy (Section 4)
+          Authoritative 6-Tier Institutional Priority Hierarchy
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 text-xs">
           {PRIORITY_RULES.map((rule) => (
             <div key={rule.priority} className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
               <div className="flex items-center justify-between mb-1">
                 <span className={`font-bold ${rule.color}`}>
-                  Priority {rule.priority}: {rule.label}
+                  {rule.label}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-snug">
@@ -170,95 +223,110 @@ export default function SpectraManagement() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
+            placeholder="Search event, club, or room..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search event, club, venue..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
 
-      {/* Spectra Events Table */}
+      {/* Events Table */}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/90 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+          <table className="w-full text-left text-xs text-slate-300">
+            <thead className="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Event Title & Club</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Priority Rank</th>
-                <th className="py-3 px-4">Date & Time</th>
-                <th className="py-3 px-4">Requested Venue</th>
-                <th className="py-3 px-4">Est. Crowd</th>
+                <th className="py-3 px-4">Event & Club</th>
+                <th className="py-3 px-4">Priority Tier</th>
+                <th className="py-3 px-4">Slot & Venue</th>
+                <th className="py-3 px-4">Attendance</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Dean Action</th>
+                <th className="py-3 px-4 text-right">Decision Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {filteredEvents.map((event) => (
-                <tr key={event.id} className="hover:bg-slate-800/50 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="font-bold text-slate-100">{event.title}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      {event.club} • Sub: {event.submittedBy}
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                      Loading Spectra festival proposals from server...
                     </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-300">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                      {event.category}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant={priorityBadgeMap[event.priority] || 'blue'} size="sm">
-                      {event.priority}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 text-slate-300">
-                    <div>{event.date}</div>
-                    <div className="text-[11px] text-teal-400 font-mono">
-                      {event.startTime} - {event.endTime}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-slate-200">
-                    {event.requestedRoom}
-                  </td>
-                  <td className="py-3 px-4 text-slate-300">{event.attendees} pax</td>
-                  <td className="py-3 px-4">
-                    <StatusBadge status={event.status} />
-                    {event.reason && (
-                      <span className="text-[10px] text-slate-500 block truncate max-w-[120px]" title={event.reason}>
-                        {event.reason}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    {event.status === 'pending' || event.status === 'conflict' ? (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="emerald"
-                          size="sm"
-                          className="text-[11px] py-1 px-2.5"
-                          onClick={() => handleOpenAction(event, 'approve')}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px] py-1 px-2.5"
-                          onClick={() => handleOpenAction(event, 'reject')}
-                        >
-                          Reject
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        Decided
-                      </span>
-                    )}
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-rose-400 bg-rose-950/20">
+                    Error loading Spectra proposals: {error}
+                  </td>
+                </tr>
+              ) : filteredEvents.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                    No Spectra event bids match current filter
+                  </td>
+                </tr>
+              ) : (
+                filteredEvents.map((event) => (
+                  <tr key={event.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-slate-100">{event.title}</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Club: <span className="text-slate-300">{event.club}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <Badge variant={priorityBadgeMap[event.priority] || 'blue'} size="sm">
+                        P{event.priority || 6} Priority
+                      </Badge>
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <div className="text-slate-200 font-medium">{event.requestedRoom}</div>
+                      <div className="text-[11px] text-slate-400">
+                        {event.day} (P{event.startPeriod}-P{event.endPeriod})
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-slate-300">
+                      {event.attendance} pax
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <StatusBadge status={event.status} />
+                    </td>
+
+                    <td className="py-3.5 px-4 text-right">
+                      {event.status === 'pending' ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="emerald"
+                            size="sm"
+                            className="text-[11px] py-1 px-2.5"
+                            onClick={() => handleOpenAction(event, 'approve')}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            className="text-[11px] py-1 px-2.5"
+                            onClick={() => handleOpenAction(event, 'reject')}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Decided
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -278,8 +346,8 @@ export default function SpectraManagement() {
           <div className="space-y-4 text-xs">
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
               <div className="text-slate-400">Club: <strong className="text-white">{actionEvent.club}</strong></div>
-              <div className="text-slate-400">Requested: <strong className="text-white">{actionEvent.requestedRoom}</strong> ({actionEvent.date}, {actionEvent.startTime} - {actionEvent.endTime})</div>
-              <div className="text-slate-400">Priority: <Badge variant={priorityBadgeMap[actionEvent.priority]} size="sm">{actionEvent.priority}</Badge></div>
+              <div className="text-slate-400">Requested: <strong className="text-white">{actionEvent.requestedRoom}</strong> ({actionEvent.day}, P{actionEvent.startPeriod}-P{actionEvent.endPeriod})</div>
+              <div className="text-slate-400">Priority: <Badge variant={priorityBadgeMap[actionEvent.priority] || 'blue'} size="sm">P{actionEvent.priority || 6}</Badge></div>
             </div>
 
             <div className="space-y-1">
@@ -304,9 +372,9 @@ export default function SpectraManagement() {
                   onChange={(e) => setAlternativeRoom(e.target.value)}
                   className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
                 >
-                  {ROOMS.filter((r) => r.id !== actionEvent.requestedRoom).map((r) => (
+                  {availableRooms.filter((r) => r.id !== actionEvent.requestedRoom).map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.name} ({r.type}, {r.capacity} seats) — {r.building}
+                      {r.name || r.id} ({r.type}, {r.capacity} seats) — {r.building}
                     </option>
                   ))}
                 </select>

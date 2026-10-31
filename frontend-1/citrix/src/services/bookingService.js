@@ -1,12 +1,5 @@
 // src/services/bookingService.js
 import { apiClient } from './apiClient';
-import {
-  mockGetBookings,
-  mockSubmitBooking,
-  mockApproveBooking,
-  mockRejectBooking,
-  mockParseNLRequest,
-} from './mockAdapter';
 
 function normalizeBooking(b) {
   return {
@@ -36,13 +29,13 @@ export const bookingService = {
   getBookings: async (filters = {}) => {
     try {
       const data = await apiClient.get('/bookings', {
-        status_filter: filters.status,
+        status: filters.status,
       });
       const list = Array.isArray(data) ? data : data?.bookings || [];
       return { data: list.map(normalizeBooking), demo: false };
     } catch (err) {
-      console.warn('Real /bookings API unavailable, using fallback:', err.message);
-      return mockGetBookings(filters);
+      console.error('Real /bookings API error:', err.message);
+      throw err;
     }
   },
 
@@ -51,8 +44,8 @@ export const bookingService = {
       const data = await apiClient.get(`/bookings/${id}`);
       return { data: normalizeBooking(data), demo: false };
     } catch (err) {
-      console.warn(`Real /bookings/${id} API unavailable:`, err.message);
-      return { data: null, demo: true };
+      console.error(`Real /bookings/${id} API error:`, err.message);
+      throw err;
     }
   },
 
@@ -66,8 +59,8 @@ export const bookingService = {
         windows: booking.windows || [
           {
             day: booking.day || 'MON',
-            from_period: booking.startPeriod || 6,
-            to_period: (booking.startPeriod || 6) + (booking.duration || 2) - 1,
+            from_period: Number(booking.startPeriod || 6),
+            to_period: Number((booking.startPeriod || 6) + (booking.duration || 2) - 1),
           },
         ],
         room_types: booking.room_types || (booking.roomType ? [booking.roomType] : ['classroom']),
@@ -79,45 +72,61 @@ export const bookingService = {
       const data = await apiClient.post('/bookings', payload);
       return { data: normalizeBooking(data), demo: false };
     } catch (err) {
-      console.warn('Real POST /bookings API unavailable, using fallback:', err.message);
-      return mockSubmitBooking(booking);
+      console.error('Real POST /bookings API error:', err.message);
+      throw err;
     }
   },
 
   approveBooking: async (id, decisionParams = {}) => {
     try {
+      let placement = { ...decisionParams };
+      // If placement fields are missing, fetch the booking to populate them
+      if (!placement.room_id || !placement.day || !placement.start_period || !placement.end_period) {
+        try {
+          const existing = await apiClient.get(`/bookings/${id}`);
+          if (existing) {
+            placement.room_id = placement.room_id || existing.assigned_room_id || existing.requested_room || 'L-101';
+            placement.day = placement.day || existing.assigned_day || existing.windows?.[0]?.day || 'MON';
+            placement.start_period = placement.start_period ?? existing.assigned_start_period ?? existing.windows?.[0]?.from_period ?? 6;
+            placement.end_period = placement.end_period ?? existing.assigned_end_period ?? existing.windows?.[0]?.to_period ?? ((placement.start_period || 6) + (existing.duration_periods || 2) - 1);
+          }
+        } catch (fetchErr) {
+          console.warn(`Could not pre-fetch booking ${id} details:`, fetchErr.message);
+        }
+      }
+
       const payload = {
         decision: 'approved',
-        day: decisionParams.day,
-        start_period: decisionParams.start_period,
-        end_period: decisionParams.end_period,
-        room_id: decisionParams.room_id,
-        reason: decisionParams.reason || 'Booking approved by authorized authority',
+        day: placement.day,
+        start_period: Number(placement.start_period),
+        end_period: Number(placement.end_period),
+        room_id: placement.room_id,
+        reason: placement.reason || 'Booking approved by authorized authority',
       };
       const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeBooking(data), demo: false };
     } catch (err) {
-      console.warn(`Real /bookings/${id}/decision API unavailable:`, err.message);
-      // Retain mock fallback only if backend call fails
-      return mockApproveBooking(id);
+      console.error(`Real /bookings/${id}/decision API error:`, err.message);
+      throw err;
     }
   },
 
   rejectBooking: async (id, reason, alternative = null) => {
     try {
+      const alt = typeof alternative === 'string' ? { room_id: alternative } : (alternative || {});
       const payload = {
-        decision: alternative ? 'alternative_offered' : 'rejected',
+        decision: (alt.room_id || alt.day) ? 'alternative_offered' : 'rejected',
         reason: reason || 'Booking request rejected due to scheduling conflict',
-        room_id: alternative?.room_id,
-        day: alternative?.day,
-        start_period: alternative?.start_period,
-        end_period: alternative?.end_period,
+        room_id: alt.room_id || null,
+        day: alt.day || null,
+        start_period: alt.start_period ? Number(alt.start_period) : null,
+        end_period: alt.end_period ? Number(alt.end_period) : null,
       };
       const data = await apiClient.post(`/bookings/${id}/decision`, payload);
       return { data: normalizeBooking(data), demo: false };
     } catch (err) {
-      console.warn(`Real /bookings/${id}/decision rejection failed:`, err.message);
-      return mockRejectBooking(id, reason, alternative);
+      console.error(`Real /bookings/${id}/decision rejection error:`, err.message);
+      throw err;
     }
   },
 
@@ -151,8 +160,8 @@ export const bookingService = {
         demo: false,
       };
     } catch (err) {
-      console.warn('Real AI assistant parse failed, using local parser:', err.message);
-      return mockParseNLRequest(text);
+      console.error('Real AI assistant parse error:', err.message);
+      throw err;
     }
   },
 };

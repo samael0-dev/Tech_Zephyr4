@@ -36,7 +36,7 @@ export default function LoginPage() {
     else if (role === 'coordinator' || role === 'department_coordinator') navigate('/coordinator');
     else if (role === 'faculty') navigate('/faculty');
     else if (role === 'club') navigate('/club');
-    else if (role === 'student') navigate('/timetable/weekly');
+    else if (role === 'student') navigate('/student');
     else navigate('/campus');
   };
 
@@ -96,6 +96,12 @@ export default function LoginPage() {
       glow: 'hover:shadow-amber-950/50',
       tag: "Spectra & Venue Booking",
     },
+    student: {
+      border: 'hover:border-emerald-500/70',
+      badge: 'green',
+      glow: 'hover:shadow-emerald-950/50',
+      tag: "Cohort Timetable & Exams",
+    },
   };
 
   return (
@@ -132,7 +138,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* 4 Demo Roles Grid */}
+        {/* 5 Demo Roles Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -142,7 +148,7 @@ export default function LoginPage() {
             <span className="text-xs text-slate-500">Click any card to sign in</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
             {DEMO_ACCOUNTS.map((account) => {
               const style = roleStyles[account.role];
               const isLoading = loadingRole === account.id;

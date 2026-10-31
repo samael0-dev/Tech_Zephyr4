@@ -368,6 +368,16 @@ export const DEMO_ACCOUNTS = [
     avatar: 'AM',
     color: 'bg-purple-600',
   },
+  {
+    id: 'demo-student',
+    name: 'Rahul Sharma',
+    email: 'student.y1a@cit.edu',
+    role: 'student',
+    designation: 'B.Tech Student, CSE (Cohort Y1-A)',
+    dept: 'CSE',
+    avatar: 'RS',
+    color: 'bg-emerald-600',
+  },
 ];
 
 export const ANALYTICS = {
@@ -417,8 +427,10 @@ export const AI_SUGGESTIONS = [
 ];
 
 export const PRIORITY_RULES = [
-  { priority: 1, label: 'Very High', description: 'Institutional events sanctioned by Dean\'s office', color: 'text-red-400', bg: 'bg-red-500/20' },
-  { priority: 2, label: 'High', description: 'NSS/NCC activities, Placement drives, Research presentations', color: 'text-orange-400', bg: 'bg-orange-500/20' },
-  { priority: 3, label: 'Medium', description: 'Technical clubs (IEEE, CSI, Robotics), Cultural committees', color: 'text-amber-400', bg: 'bg-amber-500/20' },
-  { priority: 4, label: 'Low', description: 'Recreational clubs, informal gatherings', color: 'text-green-400', bg: 'bg-green-500/20' },
+  { priority: 1, category: 'exam', label: 'Examinations (P1)', description: 'Midsem / Endsem examinations (Absolute priority, non-displaceable)', color: 'text-rose-400', bg: 'bg-rose-500/20' },
+  { priority: 2, category: 'regular_session', label: 'Regular Classes (P2)', description: 'Curricular academic sessions & scheduled laboratory classes', color: 'text-amber-400', bg: 'bg-amber-500/20' },
+  { priority: 3, category: 'institute_event', label: 'Institute Events (P3)', description: 'Institutional symposiums sanctioned by Dean/Admin (Admin Cap)', color: 'text-purple-400', bg: 'bg-purple-500/20' },
+  { priority: 4, category: 'guest_lecture', label: 'Guest Lectures (P4)', description: 'Invited faculty talks & research workshops (Faculty Cap)', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+  { priority: 5, category: 'department_event', label: 'Department Events (P5)', description: 'Departmental seminars & branch meetings (Coordinator Cap)', color: 'text-teal-400', bg: 'bg-teal-500/20' },
+  { priority: 6, category: 'club_event', label: 'Club Events (P6)', description: 'Student club activities, Spectra fest competitions (Club Cap)', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
 ];

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBookingStore } from '@/store/bookingStore';
 import { useAuthStore } from '@/store/authStore';
-import { BOOKINGS, ROOMS } from '@/data/demoData';
+import { ROOMS } from '@/data/demoData';
 import {
   Layers,
   Search,
@@ -16,20 +16,21 @@ import {
   XCircle,
   AlertTriangle,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner, StatusBadge } from '@/components/common';
 
 export default function BookingHistory() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { bookings, fetchBookings } = useBookingStore();
+  const { bookings, loading, error, fetchBookings } = useBookingStore();
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  const allBookings = bookings.length > 0 ? bookings : BOOKINGS;
+  const allBookings = bookings || [];
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,9 +42,9 @@ export default function BookingHistory() {
 
     if (searchQuery) {
       return (
-        b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.purpose.toLowerCase().includes(searchQuery.toLowerCase())
+        b.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.room?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.raw_text || b.purpose || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     return true;
@@ -122,7 +123,29 @@ export default function BookingHistory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {filteredBookings.map((b) => {
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                      Loading bookings from server...
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-rose-400 bg-rose-950/20">
+                    Error loading bookings: {error}
+                  </td>
+                </tr>
+              ) : filteredBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    No bookings found matching current filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((b) => {
                 const roomObj = ROOMS.find((r) => r.id === b.room);
 
                 return (
@@ -167,7 +190,7 @@ export default function BookingHistory() {
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

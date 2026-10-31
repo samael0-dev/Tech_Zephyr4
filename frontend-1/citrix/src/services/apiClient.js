@@ -97,9 +97,9 @@ async function request(endpoint, options = {}) {
       }
     }
 
-    // 401 Unauthorized handling: session expired
+    // 401 Unauthorized handling: session expired for real JWT tokens
     if (response.status === 401) {
-      if (token) {
+      if (token && token !== 'demo-local-token') {
         useAuthStore.getState?.()?.logout?.();
       }
     }
@@ -119,25 +119,37 @@ export const apiClient = {
   get: (endpoint, params) =>
     request(`${endpoint}${buildQueryString(params)}`, { method: 'GET' }),
 
-  post: (endpoint, body, options = {}) =>
-    request(endpoint, {
+  post: (endpoint, body, options = {}) => {
+    const qs = options.params ? buildQueryString(options.params) : '';
+    const cleanOptions = { ...options };
+    delete cleanOptions.params;
+    return request(`${endpoint}${qs}`, {
       method: 'POST',
-      body: body instanceof FormData ? body : JSON.stringify(body),
-      ...options,
-    }),
+      body: body === null || body === undefined ? undefined : (body instanceof FormData ? body : JSON.stringify(body)),
+      ...cleanOptions,
+    });
+  },
 
-  put: (endpoint, body, options = {}) =>
-    request(endpoint, {
+  put: (endpoint, body, options = {}) => {
+    const qs = options.params ? buildQueryString(options.params) : '';
+    const cleanOptions = { ...options };
+    delete cleanOptions.params;
+    return request(`${endpoint}${qs}`, {
       method: 'PUT',
-      body: body instanceof FormData ? body : JSON.stringify(body),
-      ...options,
-    }),
+      body: body === null || body === undefined ? undefined : (body instanceof FormData ? body : JSON.stringify(body)),
+      ...cleanOptions,
+    });
+  },
 
-  delete: (endpoint, options = {}) =>
-    request(endpoint, {
+  delete: (endpoint, options = {}) => {
+    const qs = options?.params ? buildQueryString(options.params) : '';
+    const cleanOptions = { ...(options || {}) };
+    delete cleanOptions.params;
+    return request(`${endpoint}${qs}`, {
       method: 'DELETE',
-      ...options,
-    }),
+      ...cleanOptions,
+    });
+  },
 };
 
 export default apiClient;

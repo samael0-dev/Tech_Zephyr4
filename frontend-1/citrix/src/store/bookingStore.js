@@ -13,7 +13,7 @@ export const useBookingStore = create((set, get) => ({
       const { data } = await bookingService.getBookings(filters);
       set({ bookings: data, loading: false });
     } catch (e) {
-      set({ error: e.message, loading: false });
+      set({ error: e.message, loading: false, bookings: [] });
     }
   },
 
@@ -29,8 +29,22 @@ export const useBookingStore = create((set, get) => ({
     }
   },
 
-  approveBooking: async (id) => {
-    const { data } = await bookingService.approveBooking(id);
+  approveBooking: async (id, decisionParams = {}) => {
+    const booking = get().bookings.find(b => b.id === id);
+    const params = { ...decisionParams };
+    if (!params.room_id && booking) {
+      params.room_id = (booking.room && booking.room !== 'TBD') ? booking.room : booking.requested_room;
+    }
+    if (!params.day && booking) {
+      params.day = (booking.day && booking.day !== 'TBD') ? booking.day : booking.windows?.[0]?.day;
+    }
+    if (params.start_period === undefined && booking) {
+      params.start_period = booking.assigned_start_period || booking.windows?.[0]?.from_period;
+    }
+    if (params.end_period === undefined && booking) {
+      params.end_period = booking.assigned_end_period || booking.windows?.[0]?.to_period;
+    }
+    const { data } = await bookingService.approveBooking(id, params);
     set(state => ({
       bookings: state.bookings.map(b => b.id === id ? { ...b, status: 'approved' } : b),
     }));

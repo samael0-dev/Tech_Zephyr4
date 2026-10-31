@@ -11,24 +11,30 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, DemoBanner } from '@/components/common';
 
 export default function DailyTimetable() {
-  const [sessions, setSessions] = useState(SESSIONS);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [selectedCohort, setSelectedCohort] = useState('All');
 
   useEffect(() => {
     async function loadSessions() {
+      setLoading(true);
+      setError(null);
       try {
         const resp = await timetableService.getSessions();
-        if (resp.data && resp.data.length > 0) {
-          setSessions(resp.data);
-        }
+        setSessions(resp.data || []);
       } catch (err) {
-        console.warn('Could not load live sessions:', err);
+        console.error('Could not load live sessions:', err);
+        setError(err.message || 'Failed to load sessions from server');
+      } finally {
+        setLoading(false);
       }
     }
     loadSessions();
@@ -90,7 +96,21 @@ export default function DailyTimetable() {
 
       {/* Timeline List */}
       <div className="space-y-3">
-        {filteredSessions.map((session) => {
+        {loading ? (
+          <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            Loading daily sessions from server...
+          </Card>
+        ) : error ? (
+          <Card className="p-8 text-center text-xs text-rose-400 bg-rose-950/20">
+            Error loading daily sessions: {error}
+          </Card>
+        ) : filteredSessions.length === 0 ? (
+          <Card className="p-12 text-center text-xs text-slate-500">
+            No scheduled teaching sessions on {selectedDay} matching filter.
+          </Card>
+        ) : (
+          filteredSessions.map((session) => {
           const course = COURSES.find((c) => c.id === session.course);
           const faculty = FACULTY.find((f) => f.id === session.faculty);
           const room = ROOMS.find((r) => r.id === session.room);
@@ -140,7 +160,7 @@ export default function DailyTimetable() {
               </div>
             </Card>
           );
-        })}
+        }))}
       </div>
     </div>
   );

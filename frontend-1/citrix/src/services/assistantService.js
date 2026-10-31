@@ -1,6 +1,5 @@
 // src/services/assistantService.js
 import { apiClient } from './apiClient';
-import { mockAIQuery } from './mockAdapter';
 
 export const assistantService = {
   chat: async (message, sessionId = null) => {
@@ -22,22 +21,27 @@ export const assistantService = {
         demo: false,
       };
     } catch (err) {
-      console.warn('Real /assistant/chat API unavailable, using fallback:', err.message);
-      const fallback = await mockAIQuery(message);
-      return {
-        reply: fallback.data?.reply || 'Assistant currently operating in local mode.',
-        intent: fallback.data?.intent || 'general_query',
-        citations: fallback.data?.citations || [],
-        requiresConfirmation: false,
-        actionProposal: null,
-        demo: true,
-      };
+      console.error('Real /assistant/chat API error:', err.message);
+      throw err;
     }
   },
 
   confirmAction: async (actionType, proposal, confirmed = true) => {
+    // Map any conversational/freeform action types to the two backend supported action types:
+    // 'create_booking' or 'apply_disruption'
+    let normalizedType = actionType;
+    if (actionType && !['create_booking', 'apply_disruption'].includes(actionType)) {
+      const lower = String(actionType).toLowerCase();
+      if (lower.includes('disrupt') || lower.includes('resched') || lower.includes('leave') || lower.includes('unavail')) {
+        normalizedType = 'apply_disruption';
+      } else {
+        // default to create_booking for bookings, room reservations, venue requests, etc.
+        normalizedType = 'create_booking';
+      }
+    }
+
     return apiClient.post('/assistant/confirm-action', {
-      action_type: actionType,
+      action_type: normalizedType,
       proposal,
       confirmed,
     });
@@ -48,8 +52,8 @@ export const assistantService = {
       const data = await apiClient.get('/assistant/dean-insights');
       return { data, demo: false };
     } catch (err) {
-      console.warn('Real /assistant/dean-insights API unavailable:', err.message);
-      return { data: null, demo: true };
+      console.error('Real /assistant/dean-insights API error:', err.message);
+      throw err;
     }
   },
 

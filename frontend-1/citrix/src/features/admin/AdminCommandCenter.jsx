@@ -98,13 +98,31 @@ export default function AdminCommandCenter() {
   const todaySessionsCount = deanMetrics?.today_scheduled_sessions ?? 189;
 
   const handleQuickApprove = async (id, title) => {
-    await approveBooking(id);
-    toast.success(`Booking "${title}" approved successfully`);
+    const item = livePendingRequests.find((r) => r.id === id) || bookings.find((b) => b.id === id);
+    const placement = {
+      room_id: item?.requested_room || 'L-101',
+      day: 'MON',
+      start_period: 6,
+      end_period: 7,
+      reason: 'Approved via Executive Command Center',
+    };
+    try {
+      await approveBooking(id, placement);
+      toast.success(`Booking "${title}" approved successfully`);
+      setLivePendingRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      toast.error(e.message || 'Approval failed');
+    }
   };
 
   const handleQuickReject = async (id, title) => {
-    await rejectBooking(id, 'Resource prioritised for academic exams', 'SH-2');
-    toast.info(`Booking "${title}" rejected. Alternative venue suggested.`);
+    try {
+      await rejectBooking(id, 'Resource prioritised for academic exams', 'SH-2');
+      toast.info(`Booking "${title}" rejected. Alternative venue suggested.`);
+      setLivePendingRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      toast.error(e.message || 'Rejection failed');
+    }
   };
 
   return (
@@ -363,9 +381,12 @@ export default function AdminCommandCenter() {
             </p>
 
             <div className="space-y-3">
-              {SPECTRA_EVENTS.filter((e) => e.status === 'pending')
-                .slice(0, 2)
-                .map((event) => (
+              {livePendingRequests.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl">
+                  No pending requests requiring decision.
+                </div>
+              ) : (
+                livePendingRequests.slice(0, 3).map((event) => (
                   <div
                     key={event.id}
                     className="p-3 bg-slate-900/80 border border-slate-700/60 rounded-xl space-y-2 text-xs"
@@ -374,11 +395,11 @@ export default function AdminCommandCenter() {
                       <div>
                         <div className="font-bold text-slate-100">{event.title}</div>
                         <div className="text-[11px] text-slate-400 mt-0.5">
-                          {event.club} • {event.requestedRoom} • {event.date}
+                          {event.requester} • {event.requested_room || 'Venue TBD'}
                         </div>
                       </div>
                       <Badge variant="amber" size="sm">
-                        {event.priority}
+                        Pending
                       </Badge>
                     </div>
 
@@ -401,7 +422,8 @@ export default function AdminCommandCenter() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
           </div>
 

@@ -15,13 +15,16 @@ import {
   List,
   Sparkles,
   ArrowRight,
-  Boxes
+  Boxes,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, StatusBadge, DemoBanner } from '@/components/common';
 
 export default function RoomSearch() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState(ROOMS);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
@@ -32,13 +35,16 @@ export default function RoomSearch() {
 
   useEffect(() => {
     async function loadRooms() {
+      setLoading(true);
+      setError(null);
       try {
         const resp = await roomService.getRooms();
-        if (resp.data && resp.data.length > 0) {
-          setRooms(resp.data);
-        }
+        setRooms(resp.data || []);
       } catch (err) {
-        console.warn('Could not load live rooms:', err);
+        console.error('Could not load live rooms:', err);
+        setError(err.message || 'Failed to load rooms from server');
+      } finally {
+        setLoading(false);
       }
     }
     loadRooms();
@@ -208,7 +214,20 @@ export default function RoomSearch() {
       </div>
 
       {/* Grid View */}
-      {viewMode === 'grid' ? (
+      {loading ? (
+        <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+          Loading campus venues from authoritative server...
+        </Card>
+      ) : error ? (
+        <Card className="p-8 text-center text-xs text-rose-400 bg-rose-950/20">
+          Error loading rooms: {error}
+        </Card>
+      ) : filteredRooms.length === 0 ? (
+        <Card className="p-12 text-center text-xs text-slate-500">
+          No campus rooms found matching the selected criteria.
+        </Card>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRooms.map((room) => {
             const bld = CAMPUS_BUILDINGS.find((b) => b.name === room.building);

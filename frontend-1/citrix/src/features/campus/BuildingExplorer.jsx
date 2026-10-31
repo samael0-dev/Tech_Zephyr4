@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   ShieldCheck,
   Sparkles,
-  CalendarDays
+  CalendarDays,
+  Info,
 } from 'lucide-react';
 import { Badge, Button, StatusBadge, PageHeader, Card } from '@/components/common';
 
@@ -56,6 +57,14 @@ export default function BuildingExplorer() {
           <ArrowRight className="w-4 h-4" />
         </Button>
       </PageHeader>
+
+      {/* 3D Static Model vs Dynamic Occupancy Notice */}
+      <div className="flex items-center gap-2 p-3 bg-slate-900/80 border border-slate-800 rounded-xl text-xs text-slate-400">
+        <Info className="w-4 h-4 text-blue-400 shrink-0" />
+        <span>
+          <strong>Campus Architecture Notice:</strong> 3D building and floor geometries represent static campus architectural models, while venue occupancy and availability details are loaded dynamically from live server telemetry (<code className="text-blue-300">/rooms/&#123;id&#125;/availability</code>).
+        </span>
+      </div>
 
       {/* Building Stats Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

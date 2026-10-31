@@ -4,9 +4,11 @@ import {
   RouterProvider,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import AppShell from "@/components/layout/AppShell";
+import RoleGuard, { getDashboardForRole } from "@/components/auth/RoleGuard";
 
 // ─── Spinner fallback ────────────────────────────────────────────────────────
 const PageSpinner = () => (
@@ -33,6 +35,7 @@ const CoordinatorDashboard   = React.lazy(() => import("@/features/coordinator/C
 const FacultyDashboard       = React.lazy(() => import("@/features/faculty/FacultyDashboard"));
 const FacultyUnavailability  = React.lazy(() => import("@/features/faculty/FacultyUnavailability"));
 const ClubDashboard          = React.lazy(() => import("@/features/club/ClubDashboard"));
+const StudentDashboard       = React.lazy(() => import("@/features/student/StudentDashboard"));
 const CampusPage             = React.lazy(() => import("@/features/campus/CampusPage"));
 const BuildingExplorer       = React.lazy(() => import("@/features/campus/BuildingExplorer"));
 const FloorExplorer          = React.lazy(() => import("@/features/campus/FloorExplorer"));
@@ -48,10 +51,22 @@ const ApprovalManagement     = React.lazy(() => import("@/features/approvals/App
 const AIAssistant            = React.lazy(() => import("@/features/assistant/AIAssistant"));
 const NotificationsPage      = React.lazy(() => import("@/features/notifications/NotificationsPage"));
 
+// ─── Root Redirect Helper ───────────────────────────────────────────────────
+function RootRedirect() {
+  const { user, isAuthenticated, loading } = useAuthStore();
+  if (loading) return <PageSpinner />;
+  if (isAuthenticated && user) {
+    return <Navigate to={getDashboardForRole(user.role)} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
+
 // ─── ProtectedRoute ──────────────────────────────────────────────────────────
 function ProtectedRoute() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuthStore();
+  const location = useLocation();
+  if (loading) return <PageSpinner />;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
   return <Outlet />;
 }
 
@@ -68,7 +83,7 @@ function AppShellLayout() {
 
 // ─── Router definition ───────────────────────────────────────────────────────
 const router = createBrowserRouter([
-  { path: "/",      element: <Navigate to="/login" replace /> },
+  { path: "/", element: <RootRedirect /> },
   {
     path: "/login",
     element: (
@@ -83,44 +98,84 @@ const router = createBrowserRouter([
       {
         element: <AppShellLayout />,
         children: [
-          // Admin
-          { path: "/admin",                    element: <AdminCommandCenter /> },
-          { path: "/admin/timetable/generate", element: <TimetableGenWorkspace /> },
-          { path: "/admin/midsem",             element: <MidsemScheduling /> },
-          { path: "/admin/spectra",            element: <SpectraManagement /> },
-          { path: "/admin/disruptions",        element: <DisruptionManagement /> },
-          { path: "/admin/timetable/compare",  element: <TimetableComparison /> },
-          { path: "/admin/analytics",          element: <AnalyticsDashboard /> },
-          { path: "/admin/audit",              element: <AuditLog /> },
-          { path: "/admin/data",               element: <DataImportExport /> },
-          // Coordinator
-          { path: "/coordinator",              element: <CoordinatorDashboard /> },
-          // Faculty
-          { path: "/faculty",                  element: <FacultyDashboard /> },
-          { path: "/faculty/unavailability",   element: <FacultyUnavailability /> },
-          // Club
-          { path: "/club",                     element: <ClubDashboard /> },
-          // Campus
-          { path: "/campus",                   element: <CampusPage /> },
-          { path: "/campus/:buildingId",       element: <BuildingExplorer /> },
+          // ─── Admin Role Protected Routes ─────────────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['admin']} />,
+            children: [
+              { path: "/admin",                    element: <AdminCommandCenter /> },
+              { path: "/admin/timetable/generate", element: <TimetableGenWorkspace /> },
+              { path: "/admin/midsem",             element: <MidsemScheduling /> },
+              { path: "/admin/spectra",            element: <SpectraManagement /> },
+              { path: "/admin/disruptions",        element: <DisruptionManagement /> },
+              { path: "/admin/timetable/compare",  element: <TimetableComparison /> },
+              { path: "/admin/analytics",          element: <AnalyticsDashboard /> },
+              { path: "/admin/audit",              element: <AuditLog /> },
+              { path: "/admin/data",               element: <DataImportExport /> },
+            ],
+          },
+
+          // ─── Coordinator Role Protected Routes ───────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['coordinator']} />,
+            children: [
+              { path: "/coordinator", element: <CoordinatorDashboard /> },
+            ],
+          },
+
+          // ─── Faculty Role Protected Routes ───────────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['faculty']} />,
+            children: [
+              { path: "/faculty",                  element: <FacultyDashboard /> },
+              { path: "/faculty/unavailability",   element: <FacultyUnavailability /> },
+            ],
+          },
+
+          // ─── Club Role Protected Routes ──────────────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['club']} />,
+            children: [
+              { path: "/club", element: <ClubDashboard /> },
+            ],
+          },
+
+          // ─── Student Role Protected Routes ───────────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['student']} />,
+            children: [
+              { path: "/student", element: <StudentDashboard /> },
+            ],
+          },
+
+          // ─── Approvals (Admin & Coordinator only) ────────────────────────
+          {
+            element: <RoleGuard allowedRoles={['admin', 'coordinator']} />,
+            children: [
+              { path: "/approvals", element: <ApprovalManagement /> },
+            ],
+          },
+
+          // ─── Bookings (Admin, Coordinator, Faculty, Club only) ───────────
+          {
+            element: <RoleGuard allowedRoles={['admin', 'coordinator', 'faculty', 'club']} />,
+            children: [
+              { path: "/bookings",                 element: <BookingHistory /> },
+              { path: "/bookings/new",             element: <BookingForm /> },
+              { path: "/bookings/new/nl",          element: <NLBookingComposer /> },
+              { path: "/bookings/:id",             element: <BookingDetail /> },
+            ],
+          },
+
+          // ─── Shared Authenticated Routes (All 5 Roles) ───────────────────
+          { path: "/campus",                                         element: <CampusPage /> },
+          { path: "/campus/:buildingId",                             element: <BuildingExplorer /> },
           { path: "/campus/:buildingId/floor/:floor",               element: <FloorExplorer /> },
           { path: "/campus/:buildingId/floor/:floor/room/:roomId",  element: <RoomDetail /> },
-          // Rooms
-          { path: "/rooms",                    element: <RoomSearch /> },
-          // Bookings
-          { path: "/bookings",                 element: <BookingHistory /> },
-          { path: "/bookings/new",             element: <BookingForm /> },
-          { path: "/bookings/new/nl",          element: <NLBookingComposer /> },
-          { path: "/bookings/:id",             element: <BookingDetail /> },
-          // Timetable
-          { path: "/timetable/weekly",         element: <WeeklyTimetable /> },
-          { path: "/timetable/daily",          element: <DailyTimetable /> },
-          // Approvals
-          { path: "/approvals",                element: <ApprovalManagement /> },
-          // AI Assistant
-          { path: "/assistant",                element: <AIAssistant /> },
-          // Notifications
-          { path: "/notifications",            element: <NotificationsPage /> },
+          { path: "/rooms",                                          element: <RoomSearch /> },
+          { path: "/timetable/weekly",                               element: <WeeklyTimetable /> },
+          { path: "/timetable/daily",                                element: <DailyTimetable /> },
+          { path: "/assistant",                                      element: <AIAssistant /> },
+          { path: "/notifications",                                  element: <NotificationsPage /> },
         ],
       },
     ],

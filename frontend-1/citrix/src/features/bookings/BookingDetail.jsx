@@ -1,9 +1,10 @@
 // src/features/bookings/BookingDetail.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BOOKINGS, ROOMS } from '@/data/demoData';
+import { ROOMS } from '@/data/demoData';
 import { useBookingStore } from '@/store/bookingStore';
 import { useAuthStore } from '@/store/authStore';
+import { bookingService } from '@/services/bookingService';
 import {
   ChevronLeft,
   Building,
@@ -15,7 +16,8 @@ import {
   AlertTriangle,
   ShieldCheck,
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import { Badge, Button, Card, PageHeader, StatusBadge, DemoBanner } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
@@ -27,45 +29,108 @@ export default function BookingDetail() {
   const { user, canApprove } = useAuthStore();
   const { bookings, approveBooking, rejectBooking } = useBookingStore();
 
-  const allBookings = bookings.length > 0 ? bookings : BOOKINGS;
-  const booking = allBookings.find((b) => b.id === id) || allBookings[0];
-  const roomObj = ROOMS.find((r) => r.id === booking.room);
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [rejectReason, setRejectReason] = useState('');
   const [altRoom, setAltRoom] = useState('SH-2');
   const [showRejectBox, setShowRejectBox] = useState(false);
 
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      const existing = bookings.find((b) => b.id === id);
+      if (existing) {
+        setBooking(existing);
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await bookingService.getBooking(id);
+        if (res?.data) {
+          setBooking(res.data);
+        } else {
+          setError('Booking not found');
+        }
+      } catch (e) {
+        setError(e.message || 'Error loading booking');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id, bookings]);
+
+  if (loading) {
+    return (
+      <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+        <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+        Loading booking details from server...
+      </Card>
+    );
+  }
+
+  if (error || !booking) {
+    return (
+      <Card className="p-8 text-center text-xs text-rose-400 bg-rose-950/20">
+        {error || 'Booking request not found'}
+      </Card>
+    );
+  }
+
+  const roomObj = ROOMS.find((r) => r.id === booking.room);
+
   // Self-approval check (Section 2 rule: Nobody can approve their own request)
   const isSelfRequest =
     booking.requestedBy === user?.role ||
-    (user?.role === 'admin' && booking.requestedBy === 'admin');
+    (user?.role === 'admin' && booking.requestedBy === 'admin') ||
+    booking.requestedBy === user?.email ||
+    booking.requestedBy === user?.name;
 
   const handleApprove = async () => {
     if (isSelfRequest) {
       toast.error('Permission Denied: Policy prohibits approving self-submitted requests.');
       return;
     }
-    await approveBooking(booking.id);
-    toast.success(`Booking ${booking.id} approved successfully!`);
+    const placement = {
+      room_id: booking.room !== 'TBD' ? booking.room : (booking.requested_room || 'L-101'),
+      day: booking.day !== 'TBD' ? booking.day : (booking.windows?.[0]?.day || 'MON'),
+      start_period: booking.assigned_start_period || booking.windows?.[0]?.from_period || 6,
+      end_period: booking.assigned_end_period || booking.windows?.[0]?.to_period || 7,
+      reason: 'Approved by authorized authority',
+    };
+    try {
+      await approveBooking(booking.id, placement);
+      setBooking((prev) => ({ ...prev, status: 'approved' }));
+      toast.success(`Booking ${booking.id} approved successfully!`);
+    } catch (e) {
+      toast.error(e.message || 'Approval failed');
+    }
   };
 
   const handleReject = async () => {
-    await rejectBooking(
-      booking.id,
-      rejectReason || 'Venue allocated for academic midsem exams',
-      altRoom
-    );
-    setShowRejectBox(false);
-    toast.info(`Booking rejected. Alternative ${altRoom} suggested.`);
+    try {
+      await rejectBooking(
+        booking.id,
+        rejectReason || 'Venue allocated for academic priority schedule',
+        { room_id: altRoom }
+      );
+      setBooking((prev) => ({ ...prev, status: 'rejected' }));
+      setShowRejectBox(false);
+      toast.info(`Booking rejected. Alternative ${altRoom} suggested.`);
+    } catch (e) {
+      toast.error(e.message || 'Rejection failed');
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Breadcrumb */}
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <Link to="/bookings" className="hover:text-blue-400 flex items-center gap-1">
           <ChevronLeft className="w-3.5 h-3.5" />
-          Bookings Registry
+          Back to Bookings
         </Link>
         <span>/</span>
         <span className="text-slate-200 font-medium">{booking.id}</span>
@@ -73,193 +138,141 @@ export default function BookingDetail() {
 
       <PageHeader
         title={booking.title}
-        subtitle={`Request ID: ${booking.id} • Registered via ${booking.type === 'nl' ? 'Smart NLP Prompt' : 'Manual Form'}`}
+        subtitle={`Application filed by ${booking.requestedBy} (${booking.role || 'Member'})`}
         badge={<StatusBadge status={booking.status} />}
       >
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/campus?room=${booking.room}`)}
-          icon={Building}
-        >
-          View Venue in 3D Campus
-        </Button>
+        {canApprove && booking.status === 'pending' && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="emerald"
+              onClick={handleApprove}
+              disabled={isSelfRequest}
+              icon={CheckCircle2}
+            >
+              Approve Booking
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => setShowRejectBox(!showRejectBox)}
+              icon={XCircle}
+            >
+              Reject / Offer Alt
+            </Button>
+          </div>
+        )}
       </PageHeader>
 
-      {/* Self-approval prevention warning banner if applicable */}
+      {/* Self-approval security callout */}
       {isSelfRequest && booking.status === 'pending' && (
-        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-300 flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-center gap-3 text-xs text-amber-200">
           <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
-          <div>
-            <span className="font-bold block">Self-Approval Restricted</span>
-            <span>
-              Per Section 2 institutional governance, users cannot approve their own booking applications. This action must be countersigned by an independent authority.
-            </span>
-          </div>
+          <span>
+            <strong>Anti-Conflict Policy Enforced:</strong> You submitted this application. Another administrator or authorized faculty member must approve this booking.
+          </span>
         </div>
       )}
 
-      {/* Main Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-5 space-y-4">
-          <h3 className="font-bold text-sm text-slate-100 uppercase tracking-wider border-b border-slate-800 pb-2">
-            Reservation Parameters
-          </h3>
+      {/* Rejection input box */}
+      {showRejectBox && (
+        <Card className="p-4 border-red-500/40 bg-red-950/20 space-y-3">
+          <h4 className="font-bold text-xs text-red-300 uppercase tracking-wider">
+            Rejection & Counter-Offer Specification
+          </h4>
+          <div>
+            <label className="text-[11px] text-slate-400 block mb-1">
+              Reason for Decision
+            </label>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Venue required for CSE401 Midsem Exam..."
+              className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-red-500"
+              rows={2}
+            />
+          </div>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Allocated Venue:</span>
-              <span className="font-bold text-slate-100">{booking.room}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Building / Block:</span>
-              <span className="font-semibold text-slate-200">{roomObj?.building}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Target Date:</span>
-              <span className="font-semibold text-slate-200">{booking.date}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Timeslot Window:</span>
-              <span className="font-mono text-teal-400 font-bold">
-                {booking.startTime} - {booking.endTime}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Expected Attendance:</span>
-              <span className="font-semibold text-slate-200">{booking.attendees} seats requested</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Room Total Capacity:</span>
-              <span className="font-semibold text-emerald-400">{roomObj?.capacity} seats</span>
+          <div>
+            <label className="text-[11px] text-slate-400 block mb-1">
+              Suggest Feasible Alternative Room
+            </label>
+            <select
+              value={altRoom}
+              onChange={(e) => setAltRoom(e.target.value)}
+              className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none"
+            >
+              {ROOMS.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} ({r.type}, {r.capacity} seats) — {r.building}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <Button variant="ghost" size="sm" onClick={() => setShowRejectBox(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" size="sm" onClick={handleReject}>
+              Confirm Rejection & Counter-Offer
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Key Details Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+            <Building className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm font-bold text-slate-100">{booking.room}</div>
+            <div className="text-xs text-slate-400">
+              {roomObj ? `${roomObj.building} (Cap: ${roomObj.capacity})` : 'Assigned Venue'}
             </div>
           </div>
         </Card>
 
-        <Card className="p-5 space-y-4">
-          <h3 className="font-bold text-sm text-slate-100 uppercase tracking-wider border-b border-slate-800 pb-2">
-            Requester &amp; Purpose
-          </h3>
+        <Card className="p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm font-bold text-slate-100">{booking.day}</div>
+            <div className="text-xs text-slate-400">{booking.time}</div>
+          </div>
+        </Card>
 
-          <div className="space-y-3 text-xs">
-            <div>
-              <span className="text-slate-400 block mb-1">Requested By:</span>
-              <span className="font-bold text-slate-100 capitalize">{booking.requestedBy}</span>
+        <Card className="p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm font-bold text-slate-100">
+              {booking.attendance} Expected
             </div>
-            <div>
-              <span className="text-slate-400 block mb-1">Purpose Statement:</span>
-              <p className="text-slate-300 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                {booking.purpose || 'Academic workshop and practice session'}
-              </p>
-            </div>
-            {booking.nlText && (
-              <div>
-                <span className="text-slate-400 block mb-1">Original Prompt (Natural Language):</span>
-                <p className="text-blue-300 italic bg-blue-950/20 p-2.5 rounded-lg border border-blue-500/30">
-                  "{booking.nlText}"
-                </p>
-              </div>
-            )}
+            <div className="text-xs text-slate-400">Category: {booking.category}</div>
           </div>
         </Card>
       </div>
 
-      {/* Suggested Alternative Banner (if rejected) */}
-      {booking.suggestedAlternative && (
-        <Card className="p-5 border-teal-500/40 bg-teal-950/10 space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-teal-300 flex items-center gap-2 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-teal-400" />
-              Suggested Alternative Venue: {booking.suggestedAlternative}
-            </span>
-            <Button
-              variant="teal"
-              size="sm"
-              onClick={() => navigate(`/bookings/new?room=${booking.suggestedAlternative}`)}
-            >
-              Confirm Alternative Booking
-            </Button>
-          </div>
-          <p className="text-slate-400">
-            Dean's Office has recommended {booking.suggestedAlternative} as a clash-free substitute matching your capacity and facility criteria.
+      {/* Narrative Purpose */}
+      {booking.raw_text && (
+        <Card className="p-5 space-y-2">
+          <h4 className="font-bold text-xs uppercase text-slate-400 tracking-wider">
+            Natural Language Application Brief
+          </h4>
+          <p className="text-xs text-slate-200 leading-relaxed italic bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            "{booking.raw_text}"
           </p>
         </Card>
       )}
 
-      {/* Admin / Coordinator Approval Action Bar */}
-      {booking.status === 'pending' && (
-        <Card className="p-5 space-y-4 border-purple-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-bold text-sm text-slate-100">
-                Administrative Approval Authority
-              </h4>
-              <p className="text-xs text-slate-400">
-                Review hard constraint checks and authorize booking ticket
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="emerald"
-                disabled={isSelfRequest}
-                onClick={handleApprove}
-                icon={CheckCircle2}
-              >
-                Approve Booking
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setShowRejectBox(!showRejectBox)}
-                icon={XCircle}
-              >
-                Reject with Reason
-              </Button>
-            </div>
-          </div>
-
-          {/* Inline Rejection Box */}
-          {showRejectBox && (
-            <div className="p-4 bg-slate-950 rounded-xl border border-red-500/30 space-y-3 text-xs animate-fade-in">
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-300">
-                  Mandatory Rejection Reason
-                </label>
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="e.g. Venue reserved for university placement orientation"
-                  rows={2}
-                  className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-300">
-                  Recommend Alternate Hall
-                </label>
-                <select
-                  value={altRoom}
-                  onChange={(e) => setAltRoom(e.target.value)}
-                  className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
-                >
-                  {ROOMS.filter((r) => r.id !== booking.room).map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} ({r.type}, {r.capacity} seats) — {r.building}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowRejectBox(false)}>
-                  Cancel
-                </Button>
-                <Button variant="danger" size="sm" onClick={handleReject}>
-                  Confirm Rejection
-                </Button>
-              </div>
-            </div>
-          )}
+      {/* Decision Metadata */}
+      {booking.decisionReason && (
+        <Card className="p-4 bg-slate-900/90 border-slate-700 space-y-1 text-xs">
+          <span className="font-bold text-slate-300">Administrative Decision Note:</span>
+          <p className="text-slate-400">{booking.decisionReason}</p>
         </Card>
       )}
     </div>

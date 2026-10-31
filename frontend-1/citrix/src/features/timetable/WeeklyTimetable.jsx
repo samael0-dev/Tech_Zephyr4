@@ -25,20 +25,25 @@ import { useToast } from '@/components/common/Toaster';
 
 export default function WeeklyTimetable() {
   const toast = useToast();
-  const [sessions, setSessions] = useState(SESSIONS);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filterMode, setFilterMode] = useState('group'); // 'group', 'faculty', 'room'
   const [selectedEntityId, setSelectedEntityId] = useState('CSE-A1');
   const [selectedSession, setSelectedSession] = useState(null);
 
   useEffect(() => {
     async function loadSessions() {
+      setLoading(true);
+      setError(null);
       try {
         const resp = await timetableService.getSessions();
-        if (resp.data && resp.data.length > 0) {
-          setSessions(resp.data);
-        }
+        setSessions(resp.data || []);
       } catch (err) {
-        console.warn('Could not load live sessions:', err);
+        console.error('Could not load live sessions:', err);
+        setError(err.message || 'Failed to load sessions from server');
+      } finally {
+        setLoading(false);
       }
     }
     loadSessions();
