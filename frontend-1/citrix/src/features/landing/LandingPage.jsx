@@ -19,12 +19,16 @@ export default function LandingPage() {
       }
     };
 
+    let cleanup = null;
     if (mountRef.current) {
-      renderLandingView(mountRef.current);
+      cleanup = renderLandingView(mountRef.current);
     }
 
     return () => {
       delete window.__citrixOnEnterWorkspace;
+      if (cleanup && typeof cleanup === 'function') {
+        cleanup();
+      }
     };
   }, [navigate, isAuthenticated, user]);
 

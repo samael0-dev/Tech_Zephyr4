@@ -29,7 +29,8 @@ import {
   ShieldCheck,
   User,
   Layers,
-  GraduationCap
+  GraduationCap,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Badge, DemoBanner } from '@/components/common';
@@ -63,6 +64,7 @@ export default function AppShell({ children }) {
         {
           group: 'CORE OVERVIEW',
           items: [
+            { label: 'Landing Page (3D)', icon: Globe, path: '/' },
             { label: 'Command Center', icon: LayoutDashboard, path: '/admin' },
             { label: '3D Campus Explorer', icon: Boxes, path: '/campus', highlight: true },
             { label: 'Campus Analytics', icon: BarChart3, path: '/admin/analytics' },
@@ -97,6 +99,7 @@ export default function AppShell({ children }) {
         {
           group: 'DEPARTMENT HUB',
           items: [
+            { label: 'Landing Page (3D)', icon: Globe, path: '/' },
             { label: 'Dept Dashboard', icon: LayoutDashboard, path: '/coordinator' },
             { label: '3D Campus Explorer', icon: Boxes, path: '/campus', highlight: true },
             { label: 'Dept Timetable', icon: CalendarDays, path: '/timetable/weekly' },
@@ -121,6 +124,7 @@ export default function AppShell({ children }) {
         {
           group: 'FACULTY WORKSPACE',
           items: [
+            { label: 'Landing Page (3D)', icon: Globe, path: '/' },
             { label: 'Faculty Dashboard', icon: LayoutDashboard, path: '/faculty' },
             { label: '3D Campus Navigator', icon: Boxes, path: '/campus', highlight: true },
             { label: 'My Teaching Timetable', icon: CalendarDays, path: '/timetable/weekly' },
@@ -145,6 +149,7 @@ export default function AppShell({ children }) {
         {
           group: 'STUDENT CLUB WORKSPACE',
           items: [
+            { label: 'Landing Page (3D)', icon: Globe, path: '/' },
             { label: 'Club Hub', icon: LayoutDashboard, path: '/club' },
             { label: '3D Campus Explorer', icon: Boxes, path: '/campus', highlight: true },
             { label: 'Explore Venues', icon: Building, path: '/rooms' },
@@ -168,6 +173,7 @@ export default function AppShell({ children }) {
       {
         group: 'STUDENT PORTAL',
         items: [
+          { label: 'Landing Page (3D)', icon: Globe, path: '/' },
           { label: 'My Dashboard', icon: LayoutDashboard, path: '/student' },
           { label: '3D Campus Map', icon: Boxes, path: '/campus', highlight: true },
           { label: 'My Timetable', icon: CalendarDays, path: '/timetable/weekly' },
@@ -243,8 +249,17 @@ export default function AppShell({ children }) {
           </Link>
         </div>
 
-        {/* Demo banner indicator */}
-        <div className="hidden md:flex items-center">
+        {/* Demo banner indicator & Landing Page Link */}
+        <div className="hidden md:flex items-center gap-2">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#121614] hover:bg-[#161B18] border border-[#1F2420] hover:border-[#B8F36B]/40 rounded-lg text-slate-300 hover:text-[#B8F36B] text-[11px] font-semibold shadow-sm tracking-wide transition-all"
+            title="Open 3D Cinematic Landing Page"
+          >
+            <Globe className="w-3.5 h-3.5 text-[#B8F36B]" />
+            <span>Landing Page</span>
+          </Link>
+
           <button
             type="button"
             onClick={() => setBackendModalOpen(true)}

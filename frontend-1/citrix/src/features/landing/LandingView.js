@@ -75,7 +75,7 @@ export function renderLandingView(container) {
             pointer-events:none;
           "></div>
 
-          <!-- Brand Symbol -->
+          <!-- Brand Symbol & Skip Intro Button -->
           <div id="intro-symbol" style="
             position:absolute;top:clamp(24px,5vw,48px);left:clamp(24px,6vw,80px);
             display:flex;align-items:center;gap:10px;
@@ -91,6 +91,17 @@ export function renderLandingView(container) {
             </div>
             <span style="font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#777D78;letter-spacing:0.15em;text-transform:uppercase;">CITRIX · CampusOS</span>
           </div>
+
+          <button id="intro-skip-btn" onclick="window.__citrixDismissIntro && window.__citrixDismissIntro()" style="
+            position:absolute;top:clamp(24px,5vw,48px);right:clamp(24px,6vw,80px);
+            pointer-events:auto;cursor:pointer;
+            font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#9AA19C;
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+            padding:6px 14px;border-radius:9999px;letter-spacing:0.04em;
+            transition:all 0.2s ease;
+          " onmouseover="this.style.color='#B8F36B';this.style.borderColor='rgba(184,243,107,0.4)'" onmouseout="this.style.color='#9AA19C';this.style.borderColor='rgba(255,255,255,0.12)'">
+            Skip intro [ESC] ✕
+          </button>
 
           <!-- Main Intro Heading -->
           <div style="overflow:hidden;margin-bottom:16px;">
@@ -295,7 +306,7 @@ export function renderLandingView(container) {
               
               <!-- Mode A: Aerial Spatial Twin -->
               <div id="hero-aerial-layer" class="absolute inset-0 w-full h-full transition-opacity duration-700 ${currentHeroMode === 'aerial' ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'}">
-                <img src="./assets/campus_aerial.jpg" alt="Chilika Institute of Technology Campus Digital Twin" 
+                <img src="/assets/campus_aerial.jpg" alt="Chilika Institute of Technology Campus Digital Twin" 
                   class="w-full h-full object-cover object-center filter brightness-[0.92] contrast-[1.08] transition-transform duration-1000 group-hover:scale-[1.01]" />
                 
                 <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1000 600" preserveAspectRatio="none">
@@ -631,7 +642,7 @@ export function renderLandingView(container) {
 
               <!-- High-Resolution Graphic Display -->
               <div class="relative rounded-2xl overflow-hidden border border-[#E5E8E3] bg-[#F7F8F6] p-2 sm:p-4 group">
-                <img src="./assets/pipeline_architecture.png" alt="CITRIX 7-Stage CP-SAT Optimization Pipeline" 
+                <img src="/assets/pipeline_architecture.png" alt="CITRIX 7-Stage CP-SAT Optimization Pipeline" 
                   class="w-full h-auto object-contain rounded-xl shadow-sm transition-transform duration-700 group-hover:scale-[1.008]" />
               </div>
             </div>
@@ -961,9 +972,19 @@ export function renderLandingView(container) {
     }
   };
 
+  const ID_MAP = {
+    acad_a: 'academic_a',
+    acad_b: 'academic_b',
+    sci_cmplx: 'science_complex',
+    audi: 'auditorium',
+    oat: 'oat',
+    library: 'library',
+  };
+
   // 4. Hero Building Selection
   window.__citrixHeroSelectBuilding = function(bId) {
-    const building = BUILDINGS.find(b => b.id === bId) || BUILDINGS[0];
+    const canonicalId = ID_MAP[bId] || bId;
+    const building = BUILDINGS.find(b => b.id === canonicalId) || BUILDINGS[0];
     selectedHeroBuilding = building;
     
     const nameEl = document.getElementById('inspector-building-name');
@@ -974,7 +995,7 @@ export function renderLandingView(container) {
     }
 
     if (threeSceneInstance && currentHeroMode === 'threejs') {
-      threeSceneInstance.focusBuilding(bId);
+      threeSceneInstance.focusBuilding(canonicalId);
     }
   };
 
@@ -1008,19 +1029,55 @@ export function renderLandingView(container) {
 
   // ============================================================
   // INTRO ANIMATION CONTROLLER — learnwithzero.com style
-  // Runs once per page load; respects prefers-reduced-motion.
+  // Runs once per session; respects prefers-reduced-motion; can be skipped.
   // ============================================================
+  const origOverflow = document.body.style.overflow;
+  let introDismissed = false;
+
+  function dismissIntro() {
+    if (introDismissed) return;
+    introDismissed = true;
+    const intro = document.getElementById('citrix-intro');
+    document.body.style.overflow = origOverflow;
+    if (intro) {
+      intro.style.transition = 'opacity 0.25s ease';
+      intro.style.opacity = '0';
+      intro.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (intro.parentNode) intro.remove();
+      }, 260);
+    }
+    _animateHeroContentIn();
+  }
+
+  window.__citrixDismissIntro = dismissIntro;
+
+  const onIntroKey = (e) => {
+    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+      dismissIntro();
+    }
+  };
+  window.addEventListener('keydown', onIntroKey);
+
   (function runIntroAnimation() {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const intro = document.getElementById('citrix-intro');
-    if (!intro) return;
-
-    if (prefersReduced) {
-      intro.remove();
+    if (!intro) {
+      _animateHeroContentIn();
       return;
     }
 
-    const origOverflow = document.body.style.overflow;
+    // Skip intro if user has seen it this browser session or prefers reduced motion
+    const alreadySeen = sessionStorage.getItem('citrix_intro_seen');
+    if (alreadySeen || prefersReduced) {
+      intro.remove();
+      _animateHeroContentIn();
+      return;
+    }
+    try {
+      sessionStorage.setItem('citrix_intro_seen', '1');
+    } catch (_) {}
+
     document.body.style.overflow = 'hidden';
 
     const panelTop    = document.getElementById('intro-panel-top');
@@ -1040,40 +1097,49 @@ export function renderLandingView(container) {
       }
     });
 
-    // Phase 2 (t=200ms): Progress bar starts + counter ticks
+    // Phase 2 (t=150ms): Progress bar starts + counter ticks smoothly
     setTimeout(() => {
+      if (introDismissed) return;
       if (progressBar) progressBar.style.transform = 'scaleX(1)';
 
       let count = 0;
-      const totalDuration = 2200;
+      const totalDuration = 1200;
       const interval = totalDuration / 100;
       const ticker = setInterval(() => {
-        count = Math.min(count + 1, 100);
+        if (introDismissed) {
+          clearInterval(ticker);
+          return;
+        }
+        count = Math.min(count + 2, 100);
         if (counter) counter.textContent = count + '%';
         if (count >= 100) clearInterval(ticker);
       }, interval);
-    }, 200);
+    }, 150);
 
-    // Phase 3 (t=600ms): Headline lines reveal bottom-up
+    // Phase 3 (t=350ms): Headline lines reveal bottom-up
     setTimeout(() => {
+      if (introDismissed) return;
       if (line1) line1.style.clipPath = 'inset(0 0 0% 0)';
-    }, 600);
+    }, 350);
     setTimeout(() => {
+      if (introDismissed) return;
       if (line2) line2.style.clipPath = 'inset(0 0 0% 0)';
-    }, 720);
+    }, 450);
 
-    // Phase 4 (t=1100ms): Tagline words stagger in
+    // Phase 4 (t=750ms): Tagline words stagger in
     setTimeout(() => {
+      if (introDismissed) return;
       tagWords.forEach(w => {
-        const extra = parseFloat(w.dataset.delay || 0) * 1000;
+        const extra = parseFloat(w.dataset.delay || 0) * 600;
         setTimeout(() => {
-          w.style.transform = 'translateY(0)';
+          if (!introDismissed) w.style.transform = 'translateY(0)';
         }, extra);
       });
-    }, 1100);
+    }, 750);
 
-    // Phase 5 (t=2900ms): Panels split
+    // Phase 5 (t=1650ms): Panels split open
     setTimeout(() => {
+      if (introDismissed) return;
       if (panelTop) {
         panelTop.style.transform = 'translateY(-100%)';
       }
@@ -1081,19 +1147,12 @@ export function renderLandingView(container) {
         panelBot.style.height  = '50vh';
         panelBot.style.transform = 'translateY(100vh)';
       }
-    }, 2900);
+    }, 1650);
 
-    // Phase 6 (t=3750ms): Remove overlay, restore scroll, animate content in
+    // Phase 6 (t=2100ms): Dismiss preloader, restore scroll, animate content in
     setTimeout(() => {
-      document.body.style.overflow = origOverflow;
-      intro.style.transition = 'opacity 0.3s ease';
-      intro.style.opacity    = '0';
-      intro.style.pointerEvents = 'none';
-
-      _animateHeroContentIn();
-
-      setTimeout(() => intro.remove(), 350);
-    }, 3750);
+      dismissIntro();
+    }, 2100);
   })();
 
   function _animateHeroContentIn() {
@@ -1101,19 +1160,19 @@ export function renderLandingView(container) {
     if (navbar) {
       navbar.style.transform = 'translateY(-16px)';
       navbar.style.opacity   = '0';
-      navbar.style.transition = 'transform 0.7s cubic-bezier(0.16,1,0.3,1), opacity 0.7s ease';
+      navbar.style.transition = 'transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.6s ease';
       requestAnimationFrame(() => {
         setTimeout(() => {
           navbar.style.transform = 'translateY(0)';
           navbar.style.opacity   = '1';
-        }, 80);
+        }, 50);
       });
     }
 
-    _staggerEl('#deck-page-0 .inline-flex', 0.08, 200);
-    _staggerEl('#deck-page-0 h1', 0.0, 300);
-    _staggerEl('#deck-page-0 p', 0.0, 450);
-    _staggerEl('#deck-page-0 .flex.flex-wrap', 0.0, 560);
+    _staggerEl('#deck-page-0 .inline-flex', 0.06, 100);
+    _staggerEl('#deck-page-0 h1', 0.0, 180);
+    _staggerEl('#deck-page-0 p', 0.0, 260);
+    _staggerEl('#deck-page-0 .flex.flex-wrap', 0.0, 340);
   }
 
   function _staggerEl(selector, stagger, delay) {
@@ -1128,4 +1187,31 @@ export function renderLandingView(container) {
       }, delay + i * stagger * 1000);
     });
   }
+
+  // Cleanup handler for React component unmounting
+  return function cleanupLanding() {
+    introDismissed = true;
+    document.body.style.overflow = origOverflow || '';
+    const intro = document.getElementById('citrix-intro');
+    if (intro && intro.parentNode) {
+      intro.remove();
+    }
+    if (threeSceneInstance) {
+      try {
+        threeSceneInstance.destroy();
+      } catch (_) {}
+      threeSceneInstance = null;
+    }
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keydown', onIntroKey);
+    window.removeEventListener('scroll', onScroll);
+    delete window.__citrixGoToPage;
+    delete window.__citrixNextPage;
+    delete window.__citrixPrevPage;
+    delete window.__citrixSetHeroMode;
+    delete window.__citrixHeroSelectBuilding;
+    delete window.__citrixToggleMobileMenu;
+    delete window.__citrixDismissIntro;
+    delete window.__citrixLandingScene;
+  };
 }

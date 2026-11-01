@@ -13,9 +13,8 @@
 
 import { BUILDINGS, ROOMS } from '../state/dataset.js';
 import { store } from '../state/store.js';
-
-import * as THREE_MODULE from 'three';
-let THREE = (typeof window !== 'undefined' && window.THREE) ? window.THREE : THREE_MODULE;
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class CampusScene {
   constructor(containerElement, onSelectBuilding, onSelectFloor) {
@@ -45,18 +44,6 @@ export class CampusScene {
 
   async init() {
     try {
-      // Dynamic import of Three.js if not yet on window
-      if (!window.THREE) {
-        const threeModule = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-        window.THREE = threeModule;
-        THREE = threeModule;
-        
-        const { OrbitControls } = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js');
-        window.OrbitControls = OrbitControls;
-      } else {
-        THREE = window.THREE;
-      }
-
       this.setupScene();
       this.setupLighting();
       this.buildCampusEnvironment();
@@ -401,15 +388,13 @@ export class CampusScene {
   }
 
   setupControls() {
-    if (window.OrbitControls) {
-      this.controls = new window.OrbitControls(this.camera, this.renderer.domElement);
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.06;
-      this.controls.maxPolarAngle = Math.PI / 2.15; // Keep above ground level
-      this.controls.minDistance = 25;
-      this.controls.maxDistance = 220;
-      this.controls.target.set(0, 6, 0);
-    }
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.06;
+    this.controls.maxPolarAngle = Math.PI / 2.15; // Keep above ground level
+    this.controls.minDistance = 25;
+    this.controls.maxDistance = 220;
+    this.controls.target.set(0, 6, 0);
   }
 
   setupRaycasting() {

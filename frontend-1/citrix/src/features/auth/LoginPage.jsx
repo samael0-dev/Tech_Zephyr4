@@ -21,7 +21,9 @@ import {
   User,
   UserPlus,
   LogIn,
-  BookOpen
+  BookOpen,
+  ArrowLeft,
+  Globe
 } from 'lucide-react';
 import { Button, Badge } from '@/components/common';
 import { useToast } from '@/components/common/Toaster';
@@ -185,6 +187,27 @@ export default function LoginPage() {
       />
 
       <div className="w-full max-w-5xl z-10 space-y-8">
+        {/* Navigation back to 3D Landing Page */}
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#121614] hover:bg-[#161B18] border border-[#1F2420] hover:border-[#B8F36B]/40 text-slate-300 hover:text-[#B8F36B] text-xs font-semibold transition-all shadow-sm cursor-pointer group"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>← CITRIX Public 3D Landing Page</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-xs text-[#777D78] hover:text-[#B8F36B] transition-colors"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Explore Spatial Twin</span>
+          </button>
+        </div>
+
         {/* Brand Header matching reference images */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#121614] border border-[#1F2420]">
