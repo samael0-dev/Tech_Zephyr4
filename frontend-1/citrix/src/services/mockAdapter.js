@@ -87,6 +87,40 @@ export const mockGenerateTimetable = async (config) => {
   };
 };
 
+export const mockGetScheduleVersions = async () => {
+  await delay(200);
+  return {
+    data: [
+      {
+        id: 'SCHED-V1-OPTIMAL',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        hard_violations_count: 0,
+        soft_penalty_score: 3,
+        sessions_count: 189,
+        is_active: true,
+      },
+    ],
+    demo: true,
+  };
+};
+
+export const mockExportTimetable = async (format = 'json') => {
+  await delay(300);
+  const jsonBlob = new Blob([JSON.stringify({ sessions: _sessions, exported_at: new Date().toISOString() }, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(jsonBlob);
+  return {
+    data: {
+      url,
+      format,
+      payload: { sessions: _sessions },
+      demo: true,
+    },
+  };
+};
+
 // ─── Bookings ─────────────────────────────────────────────────────────────
 export const mockGetBookings = async (filters = {}) => {
   await delay(300);

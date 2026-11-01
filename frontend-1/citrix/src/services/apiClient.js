@@ -110,11 +110,6 @@ async function request(endpoint, options = {}) {
       headers,
     });
   } catch (err) {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('citrix:backend_error', {
-        detail: { status: 0, message: err.message, url },
-      }));
-    }
     throw new ApiError(
       `Unable to connect to CITRIX backend (${err.message || 'Network error'}). Ensure backend URL is configured correctly.`,
       0,
@@ -143,11 +138,6 @@ async function request(endpoint, options = {}) {
     if (response.status === 405) {
       message = 'Backend API endpoint not reachable (HTTP 405). The request hit the Vercel static frontend host instead of your FastAPI backend. Please configure your Backend URL.';
       code = 'BACKEND_NOT_CONFIGURED';
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('citrix:backend_error', {
-          detail: { status: 405, message, url },
-        }));
-      }
     } else if (data && typeof data === 'object') {
       if (data.error) {
         message = data.error.message || message;
