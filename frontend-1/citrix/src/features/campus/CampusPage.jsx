@@ -230,20 +230,20 @@ export default function CampusPage() {
         )}
 
         {/* Legend Overlay at bottom-left */}
-        <div className="absolute bottom-4 left-4 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 backdrop-blur-md shadow-lg z-20 flex items-center gap-3 text-xs text-slate-300">
-          <span className="font-semibold text-slate-400 text-[11px] uppercase tracking-wider">
+        <div className="absolute bottom-4 left-4 bg-[#121614]/90 border border-[#1F2420] rounded-xl px-3 py-2 backdrop-blur-md shadow-lg z-20 flex items-center gap-3 text-xs text-slate-300">
+          <span className="font-semibold text-[#777D78] text-[11px] uppercase tracking-wider font-mono">
             Legend:
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             <span>Available</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
             <span>Occupied</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
             <span>Partial</span>
           </div>
         </div>

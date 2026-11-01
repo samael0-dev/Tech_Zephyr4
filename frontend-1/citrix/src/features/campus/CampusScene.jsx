@@ -430,11 +430,11 @@ export default function CampusScene({
 
   return (
     <div className="w-full h-full relative cursor-grab active:cursor-grabbing bg-[#0F172A]">
-      {/* 3D Static Geometry vs Dynamic Telemetry Badge */}
-      <div className="absolute bottom-4 left-4 z-10 pointer-events-none bg-slate-900/85 backdrop-blur-md border border-slate-700/60 rounded-xl px-3 py-1.5 text-[11px] text-slate-300 flex items-center gap-2 shadow-lg max-w-md">
-        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0" />
+      {/* 3D Static Geometry vs Dynamic Telemetry Badge (stacked cleanly above the Legend overlay) */}
+      <div className="absolute bottom-16 left-4 z-10 pointer-events-none bg-[#121614]/90 backdrop-blur-md border border-[#1F2420] rounded-xl px-3 py-1.5 text-[11px] text-slate-300 flex items-center gap-2 shadow-lg max-w-md">
+        <span className="w-2 h-2 rounded-full bg-[#B8F36B] animate-pulse shrink-0 shadow-[0_0_8px_rgba(184,243,107,0.6)]" />
         <span>
-          <strong>3D Digital Twin:</strong> Building geometries represent static architectural models; venue occupancy is synchronized live via backend API (<code className="text-[#B8F36B]">/rooms/&#123;id&#125;/availability</code>).
+          <strong className="text-white">3D Digital Twin:</strong> Building geometries represent static architectural models; venue occupancy is synchronized live via backend API (<code className="text-[#B8F36B] font-mono">/rooms/&#123;id&#125;/availability</code>).
         </span>
       </div>
 
