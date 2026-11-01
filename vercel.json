@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd frontend-1/citrix && npm install && npm run build",
+  "outputDirectory": "frontend-1/citrix/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
