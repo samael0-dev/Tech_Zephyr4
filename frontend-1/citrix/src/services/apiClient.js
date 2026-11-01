@@ -2,12 +2,64 @@
 /**
  * Centralized API Client for CITRIX.
  * Connects to the authoritative FastAPI backend.
- * Handles JWT bearer authentication, error envelopes, and consistent data extraction.
+ * Handles JWT bearer authentication, error envelopes, dynamic API base URLs,
+ * and automatic detection of static Vercel proxy / CORS configurations.
  */
 
 import { useAuthStore } from '@/store/authStore';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+export function getBaseUrl() {
+  const custom = typeof window !== 'undefined' ? localStorage.getItem('citrix_api_url') : null;
+  if (custom && custom.trim()) {
+    const clean = custom.trim().replace(/\/+$/, '');
+    return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+  }
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+  if (envUrl) {
+    const clean = envUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+  }
+  return '/api/v1';
+}
+
+export function setCustomApiUrl(url) {
+  if (typeof window !== 'undefined') {
+    if (!url || !url.trim()) {
+      localStorage.removeItem('citrix_api_url');
+    } else {
+      localStorage.setItem('citrix_api_url', url.trim());
+    }
+    window.dispatchEvent(new CustomEvent('citrix:api_url_changed', { detail: url }));
+  }
+}
+
+export function getCustomApiUrl() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('citrix_api_url') || '';
+  }
+  return '';
+}
+
+export async function testBackendHealth(targetUrl) {
+  const base = targetUrl
+    ? (targetUrl.trim().replace(/\/+$/, '').endsWith('/api/v1')
+        ? targetUrl.trim().replace(/\/+$/, '')
+        : `${targetUrl.trim().replace(/\/+$/, '')}/api/v1`)
+    : getBaseUrl();
+  try {
+    const res = await fetch(`${base}/health`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, data };
+    }
+    return { ok: false, status: res.status, error: `HTTP ${res.status}` };
+  } catch (err) {
+    return { ok: false, error: err.message || 'Connection refused or CORS error' };
+  }
+}
 
 export class ApiError extends Error {
   constructor(message, status = 500, code = 'UNKNOWN_ERROR', details = []) {
@@ -35,9 +87,10 @@ function buildQueryString(params = {}) {
 }
 
 async function request(endpoint, options = {}) {
+  const baseUrl = getBaseUrl();
   const url = endpoint.startsWith('http')
     ? endpoint
-    : `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    : `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   const headers = new Headers(options.headers || {});
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -57,8 +110,13 @@ async function request(endpoint, options = {}) {
       headers,
     });
   } catch (err) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('citrix:backend_error', {
+        detail: { status: 0, message: err.message, url },
+      }));
+    }
     throw new ApiError(
-      `Unable to connect to CITRIX backend server (${err.message || 'Network error'}). Please check backend connection.`,
+      `Unable to connect to CITRIX backend (${err.message || 'Network error'}). Ensure backend URL is configured correctly.`,
       0,
       'NETWORK_ERROR'
     );
@@ -82,7 +140,15 @@ async function request(endpoint, options = {}) {
     let code = `HTTP_${response.status}`;
     let details = [];
 
-    if (data && typeof data === 'object') {
+    if (response.status === 405) {
+      message = 'Backend API endpoint not reachable (HTTP 405). The request hit the Vercel static frontend host instead of your FastAPI backend. Please configure your Backend URL.';
+      code = 'BACKEND_NOT_CONFIGURED';
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('citrix:backend_error', {
+          detail: { status: 405, message, url },
+        }));
+      }
+    } else if (data && typeof data === 'object') {
       if (data.error) {
         message = data.error.message || message;
         code = data.error.code || code;

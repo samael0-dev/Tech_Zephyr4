@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Badge, DemoBanner } from '@/components/common';
+import BackendConfigModal from './BackendConfigModal';
+import { getBaseUrl, getCustomApiUrl } from '@/services/apiClient';
 
 export default function AppShell({ children }) {
   const location = useLocation();
@@ -41,6 +43,16 @@ export default function AppShell({ children }) {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [backendModalOpen, setBackendModalOpen] = useState(false);
+  const [backendDisconnected, setBackendDisconnected] = useState(false);
+
+  useEffect(() => {
+    const handleBackendError = (e) => {
+      setBackendDisconnected(true);
+    };
+    window.addEventListener('citrix:backend_error', handleBackendError);
+    return () => window.removeEventListener('citrix:backend_error', handleBackendError);
+  }, []);
 
   // Grouped navigation per role
   const getNavLinks = () => {
@@ -231,9 +243,30 @@ export default function AppShell({ children }) {
           </Link>
         </div>
 
-        {/* Demo banner indicator */}
+        {/* Demo banner indicator / Backend status toggle */}
         <div className="hidden md:flex items-center">
-          <DemoBanner text="Frontend Simulation Active • API Ready" />
+          <button
+            type="button"
+            onClick={() => setBackendModalOpen(true)}
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[11px] font-semibold shadow-sm tracking-wide transition-all cursor-pointer border ${
+              backendDisconnected
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
+                : 'bg-amber-500/10 border-amber-500/25 text-amber-300 hover:bg-amber-500/20'
+            }`}
+            title="Click to configure backend API connection URL"
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                backendDisconnected ? 'bg-rose-400 animate-ping' : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span>
+              {backendDisconnected
+                ? 'Backend Offline (HTTP 405) • Click to Connect'
+                : 'Backend API Settings'}
+            </span>
+            <span className="text-[10px] opacity-75">⚙️</span>
+          </button>
         </div>
 
         {/* Header Right Actions */}
@@ -400,6 +433,12 @@ export default function AppShell({ children }) {
           {children}
         </main>
       </div>
+
+      {/* Backend API Configuration Modal */}
+      <BackendConfigModal
+        isOpen={backendModalOpen}
+        onClose={() => setBackendModalOpen(false)}
+      />
     </div>
   );
 }
