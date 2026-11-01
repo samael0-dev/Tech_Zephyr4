@@ -615,4 +615,7 @@ Tech_Zephyr4/
 
 [![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/samael0-dev/tech_zephyr4?utm_source=readme&utm_medium=badge)
 
+Drive Link - https://drive.google.com/file/d/1N6eOWFR4LurBazha5FwVYazLiaFI4nOY/view?usp=sharing
+Youtube - https://youtu.be/EdvjTr7CqWs
+
 </div>
