@@ -613,4 +613,6 @@ Tech_Zephyr4/
 
 *Designed for a more connected, efficient, and intelligent campus.*
 
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/samael0-dev/tech_zephyr4?utm_source=readme&utm_medium=badge)
+
 </div>
