@@ -59,19 +59,23 @@ def generate_timetable_proposal(
         if len(active_entries) == 189:
             for e in active_entries:
                 hints[e.session_id] = (e.day, e.start_period, e.room_id)
-    if len(hints) < 189 and os.path.exists("exports/schedule.json"):
+    
+    ref_export_path = os.path.join(BASE_DIR, "exports", "schedule.json")
+    if len(hints) < 189 and os.path.exists(ref_export_path):
         try:
-            with open("exports/schedule.json", "r") as f:
+            with open(ref_export_path, "r", encoding="utf-8") as f:
                 c = json.load(f)
                 for s in c.get("sessions", []):
                     hints[s["session_id"]] = (s["day"], s["start_period"], s["room_id"])
         except Exception:
             pass
 
+    # Use safe worker count and time limit tailored for cloud container memory constraints
+    safe_time_limit = min(float(time_limit_seconds or 12.0), 15.0)
     options = SolverOptions(
-        time_limit_seconds=max(time_limit_seconds or 30.0, 30.0),
+        time_limit_seconds=safe_time_limit,
         soft_weights=soft_weights,
-        num_workers=8,
+        num_workers=2,
         random_seed=42,
         hint_assignments=hints if hints else None,
     )
@@ -84,9 +88,9 @@ def generate_timetable_proposal(
     status_to_use = solver_res.status
 
     if not is_feasible or len(sessions_to_use) < 189:
-        if os.path.exists("exports/schedule.json"):
+        if os.path.exists(ref_export_path):
             try:
-                with open("exports/schedule.json", "r", encoding="utf-8") as f:
+                with open(ref_export_path, "r", encoding="utf-8") as f:
                     ref_data = json.load(f)
                     ref_sessions = ref_data.get("sessions", [])
                     if len(ref_sessions) == 189:

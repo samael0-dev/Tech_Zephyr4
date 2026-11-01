@@ -36,12 +36,12 @@ def generate_schedule(
     """
     client_ip = request.client.host if request.client else None
 
-    # Run CP-SAT solver
+    # Run CP-SAT solver with safe cloud timeout
     prop = generate_timetable_proposal(
         db=db,
         user=current_user,
         dataset_id=gen_req.dataset_id,
-        time_limit_seconds=max(gen_req.solver_timeout_seconds or 30.0, 30.0),
+        time_limit_seconds=min(gen_req.solver_timeout_seconds or 12.0, 15.0),
         client_ip=client_ip,
     )
 

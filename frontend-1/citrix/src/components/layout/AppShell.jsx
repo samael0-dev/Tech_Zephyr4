@@ -45,6 +45,16 @@ export default function AppShell({ children }) {
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [backendModalOpen, setBackendModalOpen] = useState(false);
 
+  // Auto-upgrade any legacy mock token to authoritative backend JWT on page load
+  useEffect(() => {
+    const token = useAuthStore.getState?.()?.token;
+    const currentUser = useAuthStore.getState?.()?.user;
+    if (currentUser && (!token || token === 'demo-local-token')) {
+      const personaKey = currentUser.id || (currentUser.role ? `demo-${currentUser.role}` : 'demo-admin');
+      useAuthStore.getState()?.loginWithDemo?.(personaKey)?.catch?.(() => {});
+    }
+  }, []);
+
   // Grouped navigation per role
   const getNavLinks = () => {
     const role = user?.role || 'admin';

@@ -105,9 +105,9 @@ async function request(endpoint, options = {}) {
     headers.set('Content-Type', 'application/json');
   }
 
-  // Attach JWT Bearer token if available
+  // Attach JWT Bearer token if valid
   const token = useAuthStore.getState?.()?.token;
-  if (token && !headers.has('Authorization')) {
+  if (token && token !== 'demo-local-token' && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -163,8 +163,15 @@ async function request(endpoint, options = {}) {
 
     // 401 Unauthorized handling: session expired or token invalid
     if (response.status === 401) {
-      if (token) {
-        useAuthStore.getState?.()?.logout?.();
+      const authState = useAuthStore.getState?.();
+      const currentUser = authState?.user;
+      if (currentUser?.role && authState?.loginWithDemo) {
+        const personaKey = `demo-${currentUser.role}`;
+        authState.loginWithDemo(personaKey).catch(() => {
+          authState.logout?.();
+        });
+      } else {
+        authState?.logout?.();
       }
     }
 
