@@ -19,6 +19,14 @@ export function getBaseUrl() {
     const clean = envUrl.replace(/\/+$/, '');
     return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
   }
+  if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    if (!isLocalhost) {
+      return 'https://tech-zephyr4.onrender.com/api/v1';
+    }
+  }
   return '/api/v1';
 }
 

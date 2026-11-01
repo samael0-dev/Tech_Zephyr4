@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/v1/:match*",
+      "destination": "https://tech-zephyr4.onrender.com/api/v1/:match*"
+    },
+    {
+      "source": "/api/:match*",
+      "destination": "https://tech-zephyr4.onrender.com/api/v1/:match*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
