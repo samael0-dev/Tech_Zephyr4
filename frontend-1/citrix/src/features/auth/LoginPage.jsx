@@ -127,74 +127,81 @@ export default function LoginPage() {
 
   const roleStyles = {
     admin: {
-      border: 'hover:border-indigo-500/70',
+      border: 'hover:border-[#B8F36B]/60',
       badge: 'blue',
-      glow: 'hover:shadow-indigo-950/50',
+      glow: 'hover:shadow-[0_0_25px_-5px_rgba(184,243,107,0.25)]',
       tag: "Master Institutional Control",
+      avatarBg: "bg-[#161B18] border border-[#1F2420] text-[#B8F36B]",
+      badgeStyle: "bg-[#B8F36B]/15 text-[#B8F36B] border border-[#B8F36B]/30",
     },
     coordinator: {
-      border: 'hover:border-cyan-500/70',
+      border: 'hover:border-[#007A64]/70',
       badge: 'teal',
-      glow: 'hover:shadow-cyan-950/50',
+      glow: 'hover:shadow-[0_0_25px_-5px_rgba(0,122,100,0.3)]',
       tag: "Department Timetable & Labs",
+      avatarBg: "bg-[#007A64] text-white",
+      badgeStyle: "bg-[#007A64]/20 text-[#10B981] border border-[#007A64]/40",
     },
     faculty: {
-      border: 'hover:border-purple-500/70',
-      badge: 'purple',
-      glow: 'hover:shadow-purple-950/50',
+      border: 'hover:border-[#10B981]/60',
+      badge: 'green',
+      glow: 'hover:shadow-[0_0_25px_-5px_rgba(16,185,129,0.25)]',
       tag: "Personal Timetable & AI Assistant",
+      avatarBg: "bg-[#161B18] border border-[#1F2420] text-slate-200",
+      badgeStyle: "bg-[#1F2420] text-[#9AA19C] border border-[#2D3E32]",
     },
     club: {
-      border: 'hover:border-amber-500/70',
+      border: 'hover:border-amber-500/60',
       badge: 'amber',
-      glow: 'hover:shadow-amber-950/50',
+      glow: 'hover:shadow-[0_0_25px_-5px_rgba(245,158,11,0.25)]',
       tag: "Spectra & Venue Booking",
+      avatarBg: "bg-[#10B981] text-[#080A09]",
+      badgeStyle: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
     },
     student: {
-      border: 'hover:border-emerald-500/70',
+      border: 'hover:border-[#B8F36B]/50',
       badge: 'green',
-      glow: 'hover:shadow-emerald-950/50',
+      glow: 'hover:shadow-[0_0_25px_-5px_rgba(184,243,107,0.2)]',
       tag: "Cohort Timetable & Exams",
+      avatarBg: "bg-[#0B132B] text-[#B8F36B]",
+      badgeStyle: "bg-[#B8F36B]/10 text-[#B8F36B] border border-[#B8F36B]/25",
     },
   };
 
   return (
-    <div className="min-h-screen bg-[#070B14] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#080A09] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden font-sans">
       {/* Background ambient decorative glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[520px] h-[520px] rounded-full bg-indigo-600/12 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[520px] h-[520px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[520px] h-[520px] rounded-full bg-[#B8F36B]/8 blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[520px] h-[520px] rounded-full bg-[#007A64]/10 blur-[160px] pointer-events-none" />
 
       {/* Grid overlay */}
       <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 opacity-[0.025] pointer-events-none"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-          backgroundSize: '32px 32px',
+            'radial-gradient(circle at 1px 1px, #B8F36B 1px, transparent 0)',
+          backgroundSize: '36px 36px',
         }}
       />
 
       <div className="w-full max-w-5xl z-10 space-y-8">
-        {/* Brand Header */}
+        {/* Brand Header matching reference images */}
         <div className="text-center space-y-3">
-          <div className="flex justify-center mb-1">
-            <img
-              src="/favicon.png"
-              alt="CITRIX Logo"
-              className="w-16 h-16 object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.35)]"
-            />
-          </div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-inner">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="text-[11px] font-bold text-slate-300 tracking-wider uppercase">
-              Chilika Institute of Technology • Smart Campus
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#121614] border border-[#1F2420]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B8F36B] animate-pulse" />
+            <span className="text-[11px] font-mono font-semibold text-[#9AA19C] tracking-widest uppercase">
+              CITRIX • CAMPUSOS
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
-            CIT<span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-cyan-300 bg-clip-text text-transparent">RIX</span>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white flex items-center justify-center gap-2.5">
+            <span>CITRIX</span>
+            <span className="text-[#B8F36B]">CampusOS</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#777D78] font-bold">
+            ONE CAMPUS. ONE SYSTEM. ZERO CLASHES.
+          </p>
+          <p className="text-xs sm:text-sm text-[#9AA19C] max-w-xl mx-auto leading-relaxed">
             Intelligent 3D campus scheduling, conflict resolution, CP-SAT timetable synthesis, and natural language venue management.
           </p>
         </div>
@@ -203,53 +210,53 @@ export default function LoginPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <Users className="w-4 h-4 text-indigo-400" />
+              <Users className="w-4 h-4 text-[#B8F36B]" />
               Select Role for Instant Demo Access
             </h2>
-            <span className="text-xs text-slate-500">Click any card to sign in</span>
+            <span className="text-xs text-[#777D78]">Click any card to sign in</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
             {DEMO_ACCOUNTS.map((account) => {
-              const style = roleStyles[account.role];
+              const style = roleStyles[account.role] || roleStyles.student;
               const isLoading = loadingRole === account.id;
 
               return (
                 <div
                   key={account.id}
                   onClick={() => handleDemoSelect(account)}
-                  className={`group relative bg-slate-900/70 hover:bg-slate-900/95 border border-slate-800 ${style.border} rounded-2xl p-5 cursor-pointer transition-all duration-300 shadow-xl ${style.glow} flex flex-col justify-between`}
+                  className={`group relative bg-[#121614] hover:bg-[#161B18] border border-[#1F2420] ${style.border} rounded-2xl p-5 cursor-pointer transition-all duration-300 shadow-xl ${style.glow} flex flex-col justify-between`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-md ${account.color}`}
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-base shadow-md ${style.avatarBg}`}
                       >
                         {account.avatar}
                       </div>
-                      <Badge variant={style.badge} size="sm">
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${style.badgeStyle}`}>
                         {account.role}
-                      </Badge>
+                      </span>
                     </div>
 
                     <div>
-                      <h3 className="font-bold text-slate-100 group-hover:text-white transition-colors text-base">
+                      <h3 className="font-bold text-white transition-colors text-base">
                         {account.name}
                       </h3>
-                      <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                      <p className="text-xs text-[#777D78] mt-0.5 line-clamp-1">
                         {account.designation}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 leading-snug">
-                      <span className="text-slate-300 font-medium">Scope: </span>
+                    <div className="pt-2 border-t border-[#1F2420] text-[11px] text-[#9AA19C] leading-snug">
+                      <span className="text-[#777D78] font-medium">Scope: </span>
                       {style.tag}
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-semibold text-indigo-400 group-hover:text-cyan-300 transition-colors">
+                  <div className="mt-4 pt-3 border-t border-[#1F2420] flex items-center justify-between text-xs font-semibold text-[#B8F36B] group-hover:text-[#A6E854] transition-colors">
                     <span>{isLoading ? 'Accessing...' : 'Enter Dashboard'}</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-[#B8F36B] group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               );
@@ -258,16 +265,16 @@ export default function LoginPage() {
         </div>
 
         {/* Credentials Authentication & Registration Card */}
-        <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md max-w-lg mx-auto shadow-2xl">
+        <div className="bg-[#121614] border border-[#1F2420] rounded-2xl p-6 backdrop-blur-md max-w-lg mx-auto shadow-2xl">
           {/* Tabs: Sign In vs Sign Up */}
-          <div className="flex items-center p-1 bg-slate-950/80 rounded-xl border border-slate-800 mb-6">
+          <div className="flex items-center p-1 bg-[#080A09] rounded-xl border border-[#1F2420] mb-6">
             <button
               type="button"
               onClick={() => setAuthMode('login')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${
                 authMode === 'login'
-                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#B8F36B] text-[#101110] shadow-md'
+                  : 'text-[#9AA19C] hover:text-slate-200'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -278,8 +285,8 @@ export default function LoginPage() {
               onClick={() => setAuthMode('signup')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${
                 authMode === 'signup'
-                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#B8F36B] text-[#101110] shadow-md'
+                  : 'text-[#9AA19C] hover:text-slate-200'
               }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
@@ -291,50 +298,50 @@ export default function LoginPage() {
             /* Login Form */
             <form onSubmit={handleManualLogin} className="space-y-4">
               <div className="text-center mb-3">
-                <h3 className="text-sm font-bold text-slate-100">Sign In with CIT Credentials</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Enter your email address and password to access your role portal
+                <h3 className="text-sm font-bold text-white">Or Sign In with Credentials</h3>
+                <p className="text-xs text-[#777D78] mt-0.5">
+                  Production accounts are authenticated through backend OAuth / SSO
                 </p>
               </div>
 
               {/* Quick credential chips */}
               <div className="space-y-1.5 pb-1">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                <span className="text-[10px] font-semibold text-[#777D78] uppercase tracking-wider block">
                   Quick Fill Test Credentials:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
                     onClick={() => prefillAccount('dean@cit.edu', 'password123')}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-blue-300 font-medium transition-colors"
+                    className="px-2 py-1 bg-[#161B18] border border-[#1F2420] hover:border-[#B8F36B]/50 rounded text-[10px] text-[#B8F36B] font-medium transition-colors"
                   >
                     Dean (Admin)
                   </button>
                   <button
                     type="button"
                     onClick={() => prefillAccount('coordinator.cse@cit.edu', 'password123')}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-teal-300 font-medium transition-colors"
+                    className="px-2 py-1 bg-[#161B18] border border-[#1F2420] hover:border-[#007A64]/70 rounded text-[10px] text-[#10B981] font-medium transition-colors"
                   >
                     Coordinator (CSE)
                   </button>
                   <button
                     type="button"
                     onClick={() => prefillAccount('f01@cit.edu', 'password123')}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-purple-300 font-medium transition-colors"
+                    className="px-2 py-1 bg-[#161B18] border border-[#1F2420] hover:border-[#10B981]/50 rounded text-[10px] text-slate-300 font-medium transition-colors"
                   >
                     Faculty (CSE)
                   </button>
                   <button
                     type="button"
                     onClick={() => prefillAccount('coding@cit.edu', 'password123')}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-amber-300 font-medium transition-colors"
+                    className="px-2 py-1 bg-[#161B18] border border-[#1F2420] hover:border-amber-500/50 rounded text-[10px] text-amber-300 font-medium transition-colors"
                   >
                     Club (Coding)
                   </button>
                   <button
                     type="button"
                     onClick={() => prefillAccount('student.y1a@cit.edu', 'password123')}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700/80 rounded text-[10px] text-emerald-300 font-medium transition-colors"
+                    className="px-2 py-1 bg-[#161B18] border border-[#1F2420] hover:border-[#B8F36B]/50 rounded text-[10px] text-[#B8F36B] font-medium transition-colors"
                   >
                     Student (Y1-A)
                   </button>
@@ -344,14 +351,14 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label className="text-xs text-slate-300 font-semibold">CIT Email / Username</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777D78]" />
                   <input
                     type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. f01@cit.edu or dean@cit.edu"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    placeholder="e.g. dean@cit.ac.in"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs sm:text-sm text-slate-100 placeholder-[#777D78] focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -359,14 +366,14 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label className="text-xs text-slate-300 font-semibold">Password</label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777D78]" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs sm:text-sm text-slate-100 placeholder-[#777D78] focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -375,18 +382,18 @@ export default function LoginPage() {
                 type="submit"
                 variant="primary"
                 loading={submitting}
-                className="w-full py-2.5 text-xs font-bold"
+                className="w-full py-3 text-xs font-bold"
               >
                 Sign In to Platform
               </Button>
 
               <div className="text-center pt-2">
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-[#777D78]">
                   New to CITRIX?{' '}
                   <button
                     type="button"
                     onClick={() => setAuthMode('signup')}
-                    className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 ml-1"
+                    className="text-[#B8F36B] hover:text-[#A6E854] font-semibold underline underline-offset-2 ml-1"
                   >
                     Create an institutional account
                   </button>
@@ -397,8 +404,8 @@ export default function LoginPage() {
             /* Sign Up Form */
             <form onSubmit={handleManualSignup} className="space-y-3.5">
               <div className="text-center mb-2">
-                <h3 className="text-sm font-bold text-slate-100">Create Institutional Account</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h3 className="text-sm font-bold text-white">Create Institutional Account</h3>
+                <p className="text-xs text-[#777D78] mt-0.5">
                   Register your campus identity to obtain tailored timetable and venue access
                 </p>
               </div>
@@ -406,14 +413,14 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label className="text-xs text-slate-300 font-semibold">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777D78]" />
                   <input
                     type="text"
                     required
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     placeholder="e.g. Dr. Ananya Das / Rohit Sharma"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full pl-9 pr-3 py-2 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs sm:text-sm text-slate-100 placeholder-[#777D78] focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -421,14 +428,14 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label className="text-xs text-slate-300 font-semibold">Institutional Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777D78]" />
                   <input
                     type="email"
                     required
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     placeholder="e.g. ananya.das@cit.edu"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full pl-9 pr-3 py-2 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs sm:text-sm text-slate-100 placeholder-[#777D78] focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -444,7 +451,7 @@ export default function LoginPage() {
                         setSignupDept('ADMIN');
                       }
                     }}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full px-3 py-2 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   >
                     <option value="admin">Dean / Academic Affairs (Admin)</option>
                     <option value="coordinator">Department Coordinator</option>
@@ -461,7 +468,7 @@ export default function LoginPage() {
                     value={signupDept}
                     onChange={(e) => setSignupDept(e.target.value)}
                     placeholder="e.g. CSE or Y1-A"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full px-3 py-2 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -469,7 +476,7 @@ export default function LoginPage() {
               <div className="space-y-1">
                 <label className="text-xs text-slate-300 font-semibold">Create Password</label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777D78]" />
                   <input
                     type="password"
                     required
@@ -477,7 +484,7 @@ export default function LoginPage() {
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    className="w-full pl-9 pr-3 py-2 bg-[#080A09] border border-[#1F2420] rounded-xl text-xs sm:text-sm text-slate-100 placeholder-[#777D78] focus:outline-none focus:border-[#B8F36B] focus:ring-1 focus:ring-[#B8F36B]"
                   />
                 </div>
               </div>
@@ -486,18 +493,18 @@ export default function LoginPage() {
                 type="submit"
                 variant="primary"
                 loading={submitting}
-                className="w-full py-2.5 text-xs font-bold mt-1"
+                className="w-full py-3 text-xs font-bold mt-1"
               >
                 Register &amp; Access Workspace
               </Button>
 
               <div className="text-center pt-2">
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-[#777D78]">
                   Already have an account?{' '}
                   <button
                     type="button"
                     onClick={() => setAuthMode('login')}
-                    className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2 ml-1"
+                    className="text-[#B8F36B] hover:text-[#A6E854] font-semibold underline underline-offset-2 ml-1"
                   >
                     Sign In
                   </button>
@@ -508,9 +515,9 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info */}
-        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 pt-6 border-t border-slate-800/60 gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-[#777D78] pt-6 border-t border-[#1F2420] gap-3">
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-slate-400" />
+            <Building2 className="w-4 h-4 text-[#9AA19C]" />
             <span>Chilika Institute of Technology Campus Operations</span>
           </div>
           <div>

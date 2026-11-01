@@ -63,7 +63,7 @@ export default function DailyTimetable() {
               onClick={() => setSelectedDay(d)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 selectedDay === d
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -99,7 +99,7 @@ export default function DailyTimetable() {
       <div className="space-y-3">
         {loading ? (
           <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
             Loading daily sessions from server...
           </Card>
         ) : error ? (
@@ -122,7 +122,7 @@ export default function DailyTimetable() {
               className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-600 transition-all"
             >
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono font-bold flex flex-col items-center justify-center text-xs shrink-0">
+                <div className="w-16 h-16 rounded-xl bg-[#B8F36B]/15 border border-[#B8F36B]/30 text-[#B8F36B] font-mono font-bold flex flex-col items-center justify-center text-xs shrink-0">
                   <span>{session.startTime}</span>
                   <span className="text-[10px] text-slate-500">{session.endTime}</span>
                 </div>

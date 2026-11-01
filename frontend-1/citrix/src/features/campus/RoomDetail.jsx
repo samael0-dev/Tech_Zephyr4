@@ -55,18 +55,18 @@ export default function RoomDetail() {
     <div className="space-y-6">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/campus" className="hover:text-blue-400 flex items-center gap-1">
+        <Link to="/campus" className="hover:text-[#B8F36B] flex items-center gap-1">
           <ChevronLeft className="w-3.5 h-3.5" />
           Campus
         </Link>
         <span>/</span>
-        <Link to={`/campus/${building.id}`} className="hover:text-blue-400">
+        <Link to={`/campus/${building.id}`} className="hover:text-[#B8F36B]">
           {building.name}
         </Link>
         <span>/</span>
         <Link
           to={`/campus/${building.id}/floor/${room.floor}`}
-          className="hover:text-blue-400"
+          className="hover:text-[#B8F36B]"
         >
           Floor {room.floor}
         </Link>
@@ -169,7 +169,7 @@ export default function RoomDetail() {
                 onClick={() => setSelectedDay(day)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   selectedDay === day
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
@@ -196,7 +196,7 @@ export default function RoomDetail() {
                   className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold flex flex-col items-center justify-center text-xs">
+                    <div className="w-12 h-12 rounded-xl bg-[#B8F36B]/15 border border-[#B8F36B]/30 text-[#B8F36B] font-bold flex flex-col items-center justify-center text-xs">
                       <span>{s.startTime}</span>
                       <span className="text-[9px] text-slate-500">{s.endTime}</span>
                     </div>

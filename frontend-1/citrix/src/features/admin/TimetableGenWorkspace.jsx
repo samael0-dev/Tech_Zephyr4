@@ -366,9 +366,9 @@ export default function TimetableGenWorkspace() {
   };
 
   const typeColorMap = {
-    Lecture: 'bg-blue-600/20 border-blue-500/50 text-blue-300 hover:bg-blue-600/30',
-    Tutorial: 'bg-teal-600/20 border-teal-500/50 text-teal-300 hover:bg-teal-600/30',
-    Lab: 'bg-purple-600/20 border-purple-500/50 text-purple-300 hover:bg-purple-600/30',
+    Lecture: 'bg-[#B8F36B]/15 border-[#B8F36B]/40 text-[#B8F36B] hover:bg-[#B8F36B]/25',
+    Tutorial: 'bg-[#007A64]/25 border-[#007A64]/50 text-[#10B981] hover:bg-[#007A64]/35',
+    Lab: 'bg-[#10B981]/20 border-[#10B981]/50 text-[#B8F36B] hover:bg-[#10B981]/30',
   };
 
   return (
@@ -442,7 +442,7 @@ export default function TimetableGenWorkspace() {
           <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
             Soft Penalty
           </span>
-          <span className="text-xl font-black text-blue-400">
+          <span className="text-xl font-black text-[#B8F36B]">
             {result?.softViolations ?? 3}
           </span>
         </Card>
@@ -466,12 +466,12 @@ export default function TimetableGenWorkspace() {
 
       {/* Solver Generation Progress Bar (Active state) */}
       {generating && (
-        <Card className="p-6 space-y-4 border-blue-500/50 bg-blue-950/20 animate-fade-in shadow-xl">
+        <Card className="p-6 space-y-4 border-[#B8F36B]/40 bg-[#121614] animate-fade-in shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="w-3.5 h-3.5 rounded-full bg-blue-500 animate-ping" />
+              <span className="w-3.5 h-3.5 rounded-full bg-[#B8F36B] animate-ping" />
               <h4 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-blue-400 animate-spin" />
+                <Cpu className="w-4 h-4 text-[#B8F36B] animate-spin" />
                 Google OR-Tools CP-SAT Solver Execution Pipeline
               </h4>
             </div>
@@ -639,7 +639,7 @@ export default function TimetableGenWorkspace() {
                 onClick={() => handleModeChange('group')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   filterMode === 'group'
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
@@ -650,7 +650,7 @@ export default function TimetableGenWorkspace() {
                 onClick={() => handleModeChange('faculty')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   filterMode === 'faculty'
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
@@ -661,7 +661,7 @@ export default function TimetableGenWorkspace() {
                 onClick={() => handleModeChange('room')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   filterMode === 'room'
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
@@ -786,7 +786,7 @@ export default function TimetableGenWorkspace() {
                                   key={day}
                                   className="p-1.5 border-r border-slate-800 last:border-r-0 align-middle text-center bg-indigo-950/20"
                                 >
-                                  <div className="text-[10px] text-indigo-300/80 font-mono italic flex items-center justify-center gap-1">
+                                  <div className="text-[10px] text-[#B8F36B]/80 font-mono italic flex items-center justify-center gap-1">
                                     <span>↳</span>
                                     <span className="font-semibold">{sessionContinuingHere.course}</span>
                                     <span className="opacity-75">Lab (cont.)</span>
@@ -860,7 +860,7 @@ export default function TimetableGenWorkspace() {
           title={`CP-SAT Placement Explanation: ${selectedSession.id || selectedSession.course}`}
         >
           <div className="space-y-4 text-xs">
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <div className="p-3 bg-[#080A09] rounded-xl border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm text-slate-100">
                   {selectedSession.course || selectedSession.course_id} — {selectedSession.type || 'Lecture'}
@@ -911,10 +911,10 @@ export default function TimetableGenWorkspace() {
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-blue-950/20 border border-blue-500/30 flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+                <div className="p-2.5 rounded-lg bg-[#121614] border border-[#B8F36B]/30 flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-[#B8F36B] mt-0.5 shrink-0" />
                   <div>
-                    <strong className="text-blue-300">Soft Constraint Objective (S1–S6 Minimization):</strong>
+                    <strong className="text-[#B8F36B]">Soft Constraint Objective (S1–S6 Minimization):</strong>
                     <p className="text-slate-400 text-[11px] mt-0.5">
                       Placement is mathematically optimal; moving to another day or slot incurs higher soft penalties on faculty preferences (S1) or student idle gaps (S2).
                     </p>
@@ -940,7 +940,7 @@ export default function TimetableGenWorkspace() {
           title="Official Schedule Validator Report (validator.py)"
         >
           <div className="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-1">
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="p-3 bg-[#080A09] rounded-xl border border-slate-800 flex items-center justify-between">
               <div>
                 <span className="font-bold text-sm text-slate-100 block">
                   Dataset: cit-public-v1
@@ -1067,7 +1067,7 @@ export default function TimetableGenWorkspace() {
                 </div>
                 <div className="pt-2 border-t border-slate-800 flex justify-between font-sans font-bold text-xs">
                   <span className="text-slate-100">Total Soft Objective Score:</span>
-                  <span className="text-blue-400">{validationReport?.soft_total ?? 3}</span>
+                  <span className="text-[#B8F36B]">{validationReport?.soft_total ?? 3}</span>
                 </div>
               </div>
             </div>

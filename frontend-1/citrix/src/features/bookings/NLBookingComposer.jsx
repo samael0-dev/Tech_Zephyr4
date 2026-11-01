@@ -194,7 +194,7 @@ export default function NLBookingComposer() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Interactive Chat & Parsed Structure */}
         <div className="space-y-4">
-          <Card className="p-4 space-y-3 flex flex-col h-[460px] border-slate-800 bg-slate-950/60">
+          <Card className="p-4 space-y-3 flex flex-col h-[460px] border-slate-800 bg-[#080A09]/60">
             {/* Chat Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
               <div className="flex items-center gap-2">
@@ -223,8 +223,8 @@ export default function NLBookingComposer() {
                     className={`flex gap-2.5 ${isAI ? 'justify-start' : 'justify-end'}`}
                   >
                     {isAI && (
-                      <div className="w-6 h-6 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center shrink-0 mt-0.5">
-                        <Bot className="w-3.5 h-3.5 text-blue-400" />
+                      <div className="w-6 h-6 rounded-full bg-[#B8F36B]/20 border border-[#B8F36B]/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5 text-[#B8F36B]" />
                       </div>
                     )}
 
@@ -232,18 +232,18 @@ export default function NLBookingComposer() {
                       className={`max-w-[85%] rounded-2xl p-3 leading-relaxed whitespace-pre-wrap ${
                         isAI
                           ? 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-sm'
-                          : 'bg-blue-600 text-white rounded-tr-sm shadow-md shadow-blue-600/20'
+                          : 'bg-[#B8F36B] text-[#101110] font-bold rounded-tr-sm shadow-glow-sm'
                       }`}
                     >
                       <p>{m.text}</p>
-                      <span className={`block text-[10px] mt-1.5 text-right ${isAI ? 'text-slate-500' : 'text-blue-200'}`}>
+                      <span className={`block text-[10px] mt-1.5 text-right ${isAI ? 'text-slate-500' : 'text-[#A6E854]'}`}>
                         {m.timestamp}
                       </span>
                     </div>
 
                     {!isAI && (
-                      <div className="w-6 h-6 rounded-full bg-indigo-600/40 border border-indigo-500/40 flex items-center justify-center shrink-0 mt-0.5">
-                        <UserIcon className="w-3.5 h-3.5 text-indigo-300" />
+                      <div className="w-6 h-6 rounded-full bg-[#007A64]/40 border border-[#007A64]/50 flex items-center justify-center shrink-0 mt-0.5">
+                        <UserIcon className="w-3.5 h-3.5 text-[#B8F36B]" />
                       </div>
                     )}
                   </div>
@@ -252,8 +252,8 @@ export default function NLBookingComposer() {
 
               {analyzing && (
                 <div className="flex items-center gap-2 text-slate-400 text-xs py-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+                  <div className="w-6 h-6 rounded-full bg-[#B8F36B]/20 border border-[#B8F36B]/40 flex items-center justify-center shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-[#B8F36B] animate-spin" />
                   </div>
                   <span className="animate-pulse">Analyzing query and verifying parameters...</span>
                 </div>
@@ -272,7 +272,7 @@ export default function NLBookingComposer() {
                     key={idx}
                     type="button"
                     onClick={() => handleSendMessage(p)}
-                    className="whitespace-nowrap text-[11px] text-slate-300 hover:text-blue-300 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition-colors"
+                    className="whitespace-nowrap text-[11px] text-slate-300 hover:text-[#B8F36B] px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-[#B8F36B]/40 transition-colors"
                   >
                     "{p.length > 32 ? p.slice(0, 32) + '...' : p}"
                   </button>
@@ -433,7 +433,7 @@ export default function NLBookingComposer() {
 
             {!parsedData ? (
               <div className="py-20 text-center text-xs text-slate-500 space-y-2">
-                <Sparkles className="w-8 h-8 text-blue-400/40 mx-auto" />
+                <Sparkles className="w-8 h-8 text-[#B8F36B]/40 mx-auto" />
                 <p>Type your request in the chat on the left to scan available campus rooms</p>
               </div>
             ) : (
@@ -447,7 +447,7 @@ export default function NLBookingComposer() {
                       onClick={() => setSelectedRoomId(room.id)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 space-y-2 text-xs ${
                         isSelected
-                          ? 'bg-blue-950/40 border-blue-500 shadow-md shadow-blue-500/10'
+                          ? 'bg-[#121614] border-[#B8F36B] shadow-md shadow-blue-500/10'
                           : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
                       }`}
                     >
@@ -469,7 +469,7 @@ export default function NLBookingComposer() {
                             {room.capacity} Seats
                           </span>
                           {isSelected && (
-                            <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                            <span className="w-5 h-5 rounded-full bg-[#B8F36B] text-white flex items-center justify-center">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           )}

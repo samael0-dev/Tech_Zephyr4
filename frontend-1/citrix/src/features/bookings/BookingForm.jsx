@@ -208,7 +208,7 @@ export default function BookingForm() {
 
             <div className="space-y-1">
               <label className="font-semibold text-slate-300">Venue Capacity Feedback</label>
-              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-slate-300 flex items-center justify-between">
+              <div className="p-2.5 bg-[#080A09] rounded-lg border border-slate-800 text-slate-300 flex items-center justify-between">
                 <span>Room Capacity: {selectedRoomObj?.capacity} Seats</span>
                 {attendees <= (selectedRoomObj?.capacity || 0) ? (
                   <span className="text-emerald-400 font-bold">✓ Sufficient</span>
@@ -230,9 +230,9 @@ export default function BookingForm() {
             />
           </div>
 
-          <div className="p-3 bg-blue-950/20 border border-blue-500/30 rounded-xl text-[11px] text-blue-300 flex items-center justify-between">
+          <div className="p-3 bg-[#121614] border border-[#B8F36B]/30 rounded-xl text-[11px] text-[#B8F36B] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-400 shrink-0" />
+              <Info className="w-4 h-4 text-[#B8F36B] shrink-0" />
               <span>
                 Want to book via natural language? Use the Smart AI Prompt Composer!
               </span>

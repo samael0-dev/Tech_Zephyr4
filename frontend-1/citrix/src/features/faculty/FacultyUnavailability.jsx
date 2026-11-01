@@ -208,8 +208,8 @@ export default function FacultyUnavailability() {
                 />
               </div>
 
-              <div className="p-3 bg-blue-950/20 border border-blue-500/30 rounded-xl text-[11px] text-blue-300 flex items-center gap-2">
-                <Info className="w-4 h-4 shrink-0 text-blue-400" />
+              <div className="p-3 bg-[#121614] border border-[#B8F36B]/30 rounded-xl text-[11px] text-[#B8F36B] flex items-center gap-2">
+                <Info className="w-4 h-4 shrink-0 text-[#B8F36B]" />
                 <span>
                   Admin Policy: Once submitted, the CITRIX repair engine generates an alternative slot moving minimal classes.
                 </span>

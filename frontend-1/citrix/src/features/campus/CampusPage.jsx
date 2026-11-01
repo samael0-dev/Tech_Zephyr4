@@ -44,12 +44,12 @@ export default function CampusPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 relative shadow-2xl">
+    <div className="h-[calc(100vh-8rem)] flex flex-col rounded-2xl overflow-hidden border border-slate-800 bg-[#080A09] relative shadow-2xl">
       {/* Top Campus Control Bar */}
       <div className="h-14 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md px-4 flex items-center justify-between z-20">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Boxes className="w-5 h-5 text-blue-400" />
+            <Boxes className="w-5 h-5 text-[#B8F36B]" />
             <h2 className="font-bold text-sm sm:text-base text-slate-100">
               Interactive CIT Campus
             </h2>
@@ -66,7 +66,7 @@ export default function CampusPage() {
               onClick={() => setViewMode('3d')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === '3d'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -76,7 +76,7 @@ export default function CampusPage() {
               onClick={() => setViewMode('2d')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === '2d'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -143,7 +143,7 @@ export default function CampusPage() {
             </div>
 
             {/* Floor Selector Tabs */}
-            <div className="p-4 border-b border-slate-800 bg-slate-950/40">
+            <div className="p-4 border-b border-slate-800 bg-[#080A09]/40">
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
                 Select Floor to Inspect
               </label>
@@ -154,7 +154,7 @@ export default function CampusPage() {
                     onClick={() => setActiveFloor(floor)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       activeFloor === floor
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                         : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                     }`}
                   >
@@ -205,7 +205,7 @@ export default function CampusPage() {
                       className="p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 cursor-pointer transition-all flex items-center justify-between group"
                     >
                       <div>
-                        <div className="font-bold text-xs text-slate-200 group-hover:text-blue-400 transition-colors">
+                        <div className="font-bold text-xs text-slate-200 group-hover:text-[#B8F36B] transition-colors">
                           {room.name}
                         </div>
                         <div className="text-[11px] text-slate-400 mt-0.5">
@@ -222,8 +222,8 @@ export default function CampusPage() {
             </div>
 
             {/* Footer with hint */}
-            <div className="p-3 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-400 shrink-0" />
+            <div className="p-3 bg-[#080A09]/80 border-t border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+              <Info className="w-4 h-4 text-[#B8F36B] shrink-0" />
               <span>Click any classroom to see live timetable and booking slots</span>
             </div>
           </div>

@@ -85,7 +85,7 @@ export default function AnalyticsDashboard() {
 
         <Card className="p-4">
           <span className="text-xs text-slate-400 block uppercase font-semibold">Scheduled Hours</span>
-          <span className="text-2xl font-black text-blue-400 mt-1 block">189 hrs/wk</span>
+          <span className="text-2xl font-black text-[#B8F36B] mt-1 block">189 hrs/wk</span>
           <span className="text-[11px] text-slate-500">Distributed Mon–Fri</span>
         </Card>
 

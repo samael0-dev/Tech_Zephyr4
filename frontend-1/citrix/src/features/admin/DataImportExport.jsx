@@ -82,7 +82,7 @@ export default function DataImportExport() {
         <Card className="p-6 space-y-5">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-              <Upload className="w-4 h-4 text-blue-400" />
+              <Upload className="w-4 h-4 text-[#B8F36B]" />
               Upload &amp; Replace Starter Pack Dataset
             </h3>
             <Badge variant="teal" size="sm">
@@ -91,8 +91,8 @@ export default function DataImportExport() {
           </div>
 
           {/* Drag & Drop Styled Zone */}
-          <div className="p-8 border-2 border-dashed border-slate-700/80 hover:border-blue-500/80 rounded-2xl bg-slate-900/50 text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+          <div className="p-8 border-2 border-dashed border-slate-700/80 hover:border-[#B8F36B]/80 rounded-2xl bg-slate-900/50 text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#B8F36B]/15 text-[#B8F36B] flex items-center justify-center">
               <FileJson className="w-6 h-6" />
             </div>
             <div>
@@ -158,7 +158,7 @@ export default function DataImportExport() {
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <div className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                  <FileJson className="w-4 h-4 text-blue-400" />
+                  <FileJson className="w-4 h-4 text-[#B8F36B]" />
                   schedule.json (Master Hackathon Deliverable)
                 </div>
                 <p className="text-xs text-slate-400">

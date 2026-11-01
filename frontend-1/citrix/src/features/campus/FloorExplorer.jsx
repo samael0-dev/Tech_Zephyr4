@@ -75,12 +75,12 @@ export default function FloorExplorer() {
     <div className="space-y-6">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/campus" className="hover:text-blue-400 flex items-center gap-1">
+        <Link to="/campus" className="hover:text-[#B8F36B] flex items-center gap-1">
           <ChevronLeft className="w-3.5 h-3.5" />
           Campus
         </Link>
         <span>/</span>
-        <Link to={`/campus/${building.id}`} className="hover:text-blue-400">
+        <Link to={`/campus/${building.id}`} className="hover:text-[#B8F36B]">
           {building.name}
         </Link>
         <span>/</span>
@@ -103,7 +103,7 @@ export default function FloorExplorer() {
               to={`/campus/${building.id}/floor/${f}`}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 f === floorNum
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
             >
@@ -118,7 +118,7 @@ export default function FloorExplorer() {
         <div className="lg:col-span-2 space-y-3">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden relative shadow-2xl flex flex-col">
             {/* Blueprint Control Bar */}
-            <div className="p-3 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
+            <div className="p-3 border-b border-slate-800 bg-[#080A09]/80 flex items-center justify-between text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
                 <span className="font-mono text-slate-300">
@@ -261,7 +261,7 @@ export default function FloorExplorer() {
             </div>
 
             {/* Status Legend at bottom of floorplan */}
-            <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
+            <div className="p-3 bg-[#080A09] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded bg-emerald-500" />
@@ -290,7 +290,7 @@ export default function FloorExplorer() {
         {/* Right 1 Col: Selected Classroom Quick Inspector */}
         <div className="space-y-4">
           {selectedRoom ? (
-            <Card className="p-5 space-y-4 border-blue-500/30">
+            <Card className="p-5 space-y-4 border-[#B8F36B]/30">
               <div className="flex items-start justify-between border-b border-slate-800 pb-3">
                 <div>
                   <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">

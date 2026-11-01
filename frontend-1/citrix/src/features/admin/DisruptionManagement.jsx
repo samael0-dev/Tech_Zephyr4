@@ -110,8 +110,8 @@ export default function DisruptionManagement() {
           </span>
         </Card>
 
-        <Card className="p-4 border-blue-500/30">
-          <span className="text-xs text-blue-400 block font-semibold uppercase">
+        <Card className="p-4 border-[#B8F36B]/30">
+          <span className="text-xs text-[#B8F36B] block font-semibold uppercase">
             Constraint Policy
           </span>
           <span className="text-sm font-bold text-slate-100 mt-1 block">
@@ -205,7 +205,7 @@ export default function DisruptionManagement() {
                           key={sId}
                           className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 font-mono"
                         >
-                          <span className="text-blue-400 font-bold">{sId}</span>: {session?.course || 'Class'} ({session?.day} {session?.startTime})
+                          <span className="text-[#B8F36B] font-bold">{sId}</span>: {session?.course || 'Class'} ({session?.day} {session?.startTime})
                         </div>
                       );
                     })}
@@ -229,7 +229,7 @@ export default function DisruptionManagement() {
             <select
               value={disruptionType}
               onChange={(e) => setDisruptionType(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+              className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
             >
               <option value="faculty_leave">Faculty Leave / Unavailability</option>
               <option value="room_closure">Venue Emergency / Maintenance Closure</option>
@@ -244,7 +244,7 @@ export default function DisruptionManagement() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+                className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               />
             </div>
             <div className="space-y-1">
@@ -253,7 +253,7 @@ export default function DisruptionManagement() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+                className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               />
             </div>
           </div>
@@ -264,7 +264,7 @@ export default function DisruptionManagement() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
-              className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+              className="w-full p-2.5 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               placeholder="e.g. Attending international symposium"
             />
           </div>

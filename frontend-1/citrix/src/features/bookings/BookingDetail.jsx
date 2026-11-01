@@ -66,7 +66,7 @@ export default function BookingDetail() {
   if (loading) {
     return (
       <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-        <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
         Loading booking details from server...
       </Card>
     );
@@ -128,7 +128,7 @@ export default function BookingDetail() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/bookings" className="hover:text-blue-400 flex items-center gap-1">
+        <Link to="/bookings" className="hover:text-[#B8F36B] flex items-center gap-1">
           <ChevronLeft className="w-3.5 h-3.5" />
           Back to Bookings
         </Link>
@@ -222,7 +222,7 @@ export default function BookingDetail() {
       {/* Key Details Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[#B8F36B]/15 text-[#B8F36B] flex items-center justify-center">
             <Building className="w-5 h-5" />
           </div>
           <div>

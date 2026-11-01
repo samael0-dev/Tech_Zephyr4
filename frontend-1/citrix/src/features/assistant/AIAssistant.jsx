@@ -132,7 +132,7 @@ export default function AIAssistant() {
       />
 
       {/* Main Chat Box Card */}
-      <Card className="flex-1 flex flex-col overflow-hidden border-slate-700/80 bg-slate-950/70 shadow-2xl">
+      <Card className="flex-1 flex flex-col overflow-hidden border-slate-700/80 bg-[#080A09]/70 shadow-2xl">
         {/* Chat message history container */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.map((m) => {
@@ -148,7 +148,7 @@ export default function AIAssistant() {
                 <div
                   className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                     isUser
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                       : 'bg-gradient-to-tr from-teal-500 to-blue-600 text-white shadow-md'
                   }`}
                 >
@@ -159,7 +159,7 @@ export default function AIAssistant() {
                   <div
                     className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
                       isUser
-                        ? 'bg-blue-600 text-white rounded-tr-none'
+                        ? 'bg-[#B8F36B] text-[#101110] font-bold rounded-tr-none shadow-glow-sm'
                         : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none shadow-md'
                     }`}
                   >
@@ -183,7 +183,7 @@ export default function AIAssistant() {
 
                     {/* Human-in-the-Loop Action Proposal Card */}
                     {m.requiresConfirmation && m.actionProposal && (
-                      <div className="mt-3 p-3 bg-slate-950/80 border border-amber-500/40 rounded-xl space-y-2">
+                      <div className="mt-3 p-3 bg-[#080A09]/80 border border-amber-500/40 rounded-xl space-y-2">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
                           <span>Action Requires Human Approval</span>
@@ -219,7 +219,7 @@ export default function AIAssistant() {
                         <button
                           key={idx}
                           onClick={() => handleSend(s)}
-                          className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-blue-300 transition-colors"
+                          className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-[#B8F36B] transition-colors"
                         >
                           "{s}"
                         </button>
@@ -256,7 +256,7 @@ export default function AIAssistant() {
               if (e.key === 'Enter') handleSend();
             }}
             placeholder="Ask why a class was placed at 8 AM, request room availability, or reschedule a session..."
-            className="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="flex-1 px-4 py-2.5 bg-[#080A09] border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           />
           <Button
             variant="primary"

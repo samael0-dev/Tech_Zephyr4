@@ -412,9 +412,9 @@ export const ANALYTICS = {
     { day: 'Fri', sessions: 34, utilisation: 68 },
   ],
   sessionTypes: [
-    { name: 'Lecture', value: 120, color: '#3B82F6' },
-    { name: 'Tutorial', value: 35, color: '#14B8A6' },
-    { name: 'Lab', value: 34, color: '#8B5CF6' },
+    { name: 'Lecture', value: 120, color: '#B8F36B' },
+    { name: 'Tutorial', value: 35, color: '#007A64' },
+    { name: 'Lab', value: 34, color: '#10B981' },
   ],
   conflictTrend: [
     { week: 'Wk 40', conflicts: 3 },
@@ -424,10 +424,10 @@ export const ANALYTICS = {
     { week: 'Wk 44', conflicts: 0 },
   ],
   bookingsByRole: [
-    { role: 'Faculty', count: 45, color: '#6366F1' },
-    { role: 'Dept Coord', count: 28, color: '#14B8A6' },
-    { role: 'Club Rep', count: 62, color: '#8B5CF6' },
-    { role: 'Admin', count: 15, color: '#3B82F6' },
+    { role: 'Faculty', count: 45, color: '#10B981' },
+    { role: 'Dept Coord', count: 28, color: '#007A64' },
+    { role: 'Club Rep', count: 62, color: '#F59E0B' },
+    { role: 'Admin', count: 15, color: '#B8F36B' },
   ],
 };
 
@@ -444,7 +444,7 @@ export const PRIORITY_RULES = [
   { priority: 1, category: 'exam', label: 'Examinations (P1)', description: 'Midsem / Endsem examinations (Absolute priority, non-displaceable)', color: 'text-rose-400', bg: 'bg-rose-500/20' },
   { priority: 2, category: 'regular_session', label: 'Regular Classes (P2)', description: 'Curricular academic sessions & scheduled laboratory classes', color: 'text-amber-400', bg: 'bg-amber-500/20' },
   { priority: 3, category: 'institute_event', label: 'Institute Events (P3)', description: 'Institutional symposiums sanctioned by Dean/Admin (Admin Cap)', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-  { priority: 4, category: 'guest_lecture', label: 'Guest Lectures (P4)', description: 'Invited faculty talks & research workshops (Faculty Cap)', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+  { priority: 4, category: 'guest_lecture', label: 'Guest Lectures (P4)', description: 'Invited faculty talks & research workshops (Faculty Cap)', color: 'text-[#B8F36B]', bg: 'bg-[#B8F36B]/15' },
   { priority: 5, category: 'department_event', label: 'Department Events (P5)', description: 'Departmental seminars & branch meetings (Coordinator Cap)', color: 'text-teal-400', bg: 'bg-teal-500/20' },
   { priority: 6, category: 'club_event', label: 'Club Events (P6)', description: 'Student club activities, Spectra fest competitions (Club Cap)', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
 ];

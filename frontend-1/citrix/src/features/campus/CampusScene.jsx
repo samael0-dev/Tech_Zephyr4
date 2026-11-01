@@ -393,7 +393,7 @@ function StylizedBuilding({ building, isSelected, isHovered, onSelect, onHover }
               ? 'bg-indigo-600 text-white font-bold ring-2 ring-indigo-400 scale-110 shadow-indigo-500/50'
               : isHovered
               ? 'bg-slate-900/95 text-cyan-300 font-semibold ring-1 ring-cyan-500/50 scale-105'
-              : 'bg-[#0B1120]/90 text-slate-200 border border-slate-700/80'
+              : 'bg-[#080A09]/90 text-slate-200 border border-slate-700/80'
           }`}
         >
           <div className="text-xs whitespace-nowrap font-bold flex items-center justify-center gap-1.5">
@@ -434,7 +434,7 @@ export default function CampusScene({
       <div className="absolute bottom-4 left-4 z-10 pointer-events-none bg-slate-900/85 backdrop-blur-md border border-slate-700/60 rounded-xl px-3 py-1.5 text-[11px] text-slate-300 flex items-center gap-2 shadow-lg max-w-md">
         <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0" />
         <span>
-          <strong>3D Digital Twin:</strong> Building geometries represent static architectural models; venue occupancy is synchronized live via backend API (<code className="text-blue-300">/rooms/&#123;id&#125;/availability</code>).
+          <strong>3D Digital Twin:</strong> Building geometries represent static architectural models; venue occupancy is synchronized live via backend API (<code className="text-[#B8F36B]">/rooms/&#123;id&#125;/availability</code>).
         </span>
       </div>
 

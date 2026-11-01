@@ -185,7 +185,7 @@ export default function StudentDashboard() {
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               Weekly Classes
             </span>
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-2 rounded-xl bg-[#B8F36B]/15 text-[#B8F36B] border border-[#B8F36B]/30">
               <CalendarDays className="w-5 h-5" />
             </div>
           </div>

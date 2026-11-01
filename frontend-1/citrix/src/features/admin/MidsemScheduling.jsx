@@ -134,7 +134,7 @@ export default function MidsemScheduling() {
             <span className="text-2xl font-black text-slate-100 mt-1 block">{exams.length} Exams</span>
             <span className="text-[11px] text-slate-500">14 Student Cohorts</span>
           </div>
-          <CalendarRange className="w-8 h-8 text-blue-400/60" />
+          <CalendarRange className="w-8 h-8 text-[#B8F36B]/60" />
         </Card>
 
         <Card className="p-4 flex items-center justify-between border-emerald-500/30">
@@ -197,7 +197,7 @@ export default function MidsemScheduling() {
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'all'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -257,7 +257,7 @@ export default function MidsemScheduling() {
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                      <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
                       Loading midsem exams from server...
                     </div>
                   </td>

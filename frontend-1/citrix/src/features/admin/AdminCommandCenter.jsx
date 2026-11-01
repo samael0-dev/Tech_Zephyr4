@@ -160,7 +160,7 @@ export default function AdminCommandCenter() {
         <Card className="p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold uppercase tracking-wider">Campus Venues</span>
-            <Building2 className="w-4 h-4 text-blue-400" />
+            <Building2 className="w-4 h-4 text-[#B8F36B]" />
           </div>
           <div className="my-2">
             <div className="text-2xl font-black text-slate-100">{totalRooms} Rooms</div>
@@ -230,7 +230,7 @@ export default function AdminCommandCenter() {
         <Card className="p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold uppercase tracking-wider">Faculty Active</span>
-            <Users className="w-4 h-4 text-blue-400" />
+            <Users className="w-4 h-4 text-[#B8F36B]" />
           </div>
           <div className="my-2">
             <div className="text-2xl font-black text-slate-100">
@@ -277,7 +277,7 @@ export default function AdminCommandCenter() {
                   <span className="text-[10px] text-teal-400">Suggested: Move EC401 to SH-2</span>
                   <Link
                     to="/admin/midsem"
-                    className="text-blue-400 hover:text-blue-300 font-semibold text-[11px]"
+                    className="text-[#B8F36B] hover:text-[#B8F36B] font-semibold text-[11px]"
                   >
                     Resolve →
                   </Link>
@@ -308,7 +308,7 @@ export default function AdminCommandCenter() {
           <div className="mt-4 pt-3 border-t border-slate-800 text-right">
             <Link
               to="/admin/disruptions"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1"
+              className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold inline-flex items-center gap-1"
             >
               Manage all disruptions <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -320,7 +320,7 @@ export default function AdminCommandCenter() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-blue-400" />
+                <Activity className="w-4 h-4 text-[#B8F36B]" />
                 Venue Utilisation by Academic Block
               </h3>
               <span className="text-[11px] text-slate-400 font-mono">AVG 72%</span>
@@ -358,7 +358,7 @@ export default function AdminCommandCenter() {
           <div className="pt-2 text-right">
             <Link
               to="/admin/analytics"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1"
+              className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold inline-flex items-center gap-1"
             >
               Detailed Analytics <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -431,7 +431,7 @@ export default function AdminCommandCenter() {
           <div className="mt-4 pt-3 border-t border-slate-800 text-right">
             <Link
               to="/approvals"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1"
+              className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold inline-flex items-center gap-1"
             >
               Open Approvals Manager <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -547,7 +547,7 @@ export default function AdminCommandCenter() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-400" />
+              <Users className="w-4 h-4 text-[#B8F36B]" />
               Faculty Availability Matrix (40 Faculty Members)
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -622,15 +622,15 @@ export default function AdminCommandCenter() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           onClick={() => navigate('/admin/timetable/generate')}
-          className="p-5 rounded-2xl bg-gradient-to-br from-blue-900/40 to-slate-900 border border-blue-500/30 hover:border-blue-500 cursor-pointer transition-all duration-200 group flex items-center justify-between"
+          className="p-5 rounded-2xl bg-gradient-to-br from-blue-900/40 to-slate-900 border border-[#B8F36B]/30 hover:border-[#B8F36B] cursor-pointer transition-all duration-200 group flex items-center justify-between"
         >
           <div>
-            <h4 className="font-bold text-slate-100 group-hover:text-blue-300">
+            <h4 className="font-bold text-slate-100 group-hover:text-[#B8F36B]">
               Timetable Workspace
             </h4>
             <p className="text-xs text-slate-400 mt-1">CP-SAT solver triggers</p>
           </div>
-          <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-5 h-5 text-[#B8F36B] group-hover:translate-x-1 transition-transform" />
         </div>
 
         <div
@@ -661,15 +661,15 @@ export default function AdminCommandCenter() {
 
         <div
           onClick={() => navigate('/admin/data')}
-          className="p-5 rounded-2xl bg-gradient-to-br from-indigo-900/40 to-slate-900 border border-indigo-500/30 hover:border-indigo-500 cursor-pointer transition-all duration-200 group flex items-center justify-between"
+          className="p-5 rounded-2xl bg-gradient-to-br from-[#161B18] to-[#121614] border border-[#B8F36B]/30 hover:border-indigo-500 cursor-pointer transition-all duration-200 group flex items-center justify-between"
         >
           <div>
-            <h4 className="font-bold text-slate-100 group-hover:text-indigo-300">
+            <h4 className="font-bold text-slate-100 group-hover:text-[#B8F36B]">
               Dataset Import / Export
             </h4>
             <p className="text-xs text-slate-400 mt-1">schedule.json sync</p>
           </div>
-          <ArrowRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-5 h-5 text-[#B8F36B] group-hover:translate-x-1 transition-transform" />
         </div>
       </div>
     </div>

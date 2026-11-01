@@ -21,7 +21,7 @@ export default function CampusFallback({ onSelectBuilding, selectedBuilding }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
           <div>
             <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <Building className="w-5 h-5 text-blue-400" />
+              <Building className="w-5 h-5 text-[#B8F36B]" />
               CIT Campus Building Directory (2D Plan)
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -45,7 +45,7 @@ export default function CampusFallback({ onSelectBuilding, selectedBuilding }) {
                 onClick={() => onSelectBuilding(b)}
                 className={`group relative bg-slate-900/90 border rounded-2xl p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
                   isSelected
-                    ? 'border-blue-500 bg-slate-800/90 shadow-xl shadow-blue-500/10'
+                    ? 'border-[#B8F36B] bg-slate-800/90 shadow-xl shadow-blue-500/10'
                     : 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/60'
                 }`}
               >
@@ -59,7 +59,7 @@ export default function CampusFallback({ onSelectBuilding, selectedBuilding }) {
                     </Badge>
                   </div>
 
-                  <h4 className="text-base font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+                  <h4 className="text-base font-bold text-slate-100 group-hover:text-[#B8F36B] transition-colors">
                     {b.name}
                   </h4>
                   <p className="text-xs text-slate-400 mt-1 line-clamp-2">
@@ -76,13 +76,13 @@ export default function CampusFallback({ onSelectBuilding, selectedBuilding }) {
                       <div className="text-[10px] text-slate-400 uppercase">Rooms</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-lg p-2">
-                      <div className="text-xs font-bold text-blue-400">{b.dept.split(',')[0]}</div>
+                      <div className="text-xs font-bold text-[#B8F36B]">{b.dept.split(',')[0]}</div>
                       <div className="text-[10px] text-slate-400 uppercase">Dept</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-semibold text-blue-400 group-hover:text-blue-300">
+                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs font-semibold text-[#B8F36B] group-hover:text-[#B8F36B]">
                   <span>Explore Floors & Classrooms</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

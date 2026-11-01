@@ -80,7 +80,7 @@ export default function ClubDashboard() {
 
         <Card className="p-4">
           <span className="text-xs text-slate-400 block uppercase font-semibold">Spectra Week Status</span>
-          <span className="text-2xl font-black text-blue-400 mt-1 block">SP001 Queued</span>
+          <span className="text-2xl font-black text-[#B8F36B] mt-1 block">SP001 Queued</span>
           <span className="text-[11px] text-slate-500">CS-L3 requested (Nov 8)</span>
         </Card>
 
@@ -112,7 +112,7 @@ export default function ClubDashboard() {
               </div>
               <Link
                 to="/bookings"
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+                className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold flex items-center gap-1"
               >
                 All Bookings <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -156,7 +156,7 @@ export default function ClubDashboard() {
                   </Badge>
                 </div>
 
-                <div className="p-3 bg-slate-950/80 rounded-lg border border-slate-800 text-slate-300 space-y-1">
+                <div className="p-3 bg-[#080A09]/80 rounded-lg border border-slate-800 text-slate-300 space-y-1">
                   <div className="text-red-400 font-semibold">
                     Rejection Reason:
                   </div>

@@ -26,14 +26,14 @@ const ICONS = {
   success: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />,
   error: <XCircle className="w-4 h-4 text-rose-400 shrink-0" />,
   warning: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />,
-  info: <Info className="w-4 h-4 text-indigo-400 shrink-0" />,
+  info: <Info className="w-4 h-4 text-[#B8F36B] shrink-0" />,
 };
 
 const BORDERS = {
   success: 'border-emerald-500/30 bg-emerald-950/20',
   error: 'border-rose-500/30 bg-rose-950/20',
   warning: 'border-amber-500/30 bg-amber-950/20',
-  info: 'border-indigo-500/30 bg-indigo-950/20',
+  info: 'border-[#B8F36B]/30 bg-indigo-950/20',
 };
 
 function Toast({ id, type, message }) {
@@ -48,7 +48,7 @@ function Toast({ id, type, message }) {
       initial={{ opacity: 0, x: 60, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 60, scale: 0.95 }}
-      className={`flex items-center gap-3 px-4 py-3 bg-[#0B1120]/95 backdrop-blur-xl border ${BORDERS[type]} rounded-2xl shadow-2xl min-w-[300px] max-w-sm`}
+      className={`flex items-center gap-3 px-4 py-3 bg-[#080A09]/95 backdrop-blur-xl border ${BORDERS[type]} rounded-2xl shadow-2xl min-w-[300px] max-w-sm`}
     >
       {ICONS[type]}
       <span className="text-xs sm:text-sm font-medium text-slate-100 flex-1 leading-snug">

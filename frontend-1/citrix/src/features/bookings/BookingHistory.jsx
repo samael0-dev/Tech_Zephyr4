@@ -82,7 +82,7 @@ export default function BookingHistory() {
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
                 activeTab === tab
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
@@ -127,7 +127,7 @@ export default function BookingHistory() {
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                      <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
                       Loading bookings from server...
                     </div>
                   </td>
@@ -183,7 +183,7 @@ export default function BookingHistory() {
                     <td className="py-3 px-4 text-right">
                       <Link
                         to={`/bookings/${b.id}`}
-                        className="text-xs text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1"
+                        className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold inline-flex items-center gap-1"
                       >
                         Inspect <ArrowRight className="w-3.5 h-3.5" />
                       </Link>

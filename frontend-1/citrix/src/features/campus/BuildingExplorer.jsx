@@ -32,7 +32,7 @@ export default function BuildingExplorer() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/campus" className="hover:text-blue-400 flex items-center gap-1">
+        <Link to="/campus" className="hover:text-[#B8F36B] flex items-center gap-1">
           <ChevronLeft className="w-3.5 h-3.5" />
           Back to Campus Map
         </Link>
@@ -60,16 +60,16 @@ export default function BuildingExplorer() {
 
       {/* 3D Static Model vs Dynamic Occupancy Notice */}
       <div className="flex items-center gap-2 p-3 bg-slate-900/80 border border-slate-800 rounded-xl text-xs text-slate-400">
-        <Info className="w-4 h-4 text-blue-400 shrink-0" />
+        <Info className="w-4 h-4 text-[#B8F36B] shrink-0" />
         <span>
-          <strong>Campus Architecture Notice:</strong> 3D building and floor geometries represent static campus architectural models, while venue occupancy and availability details are loaded dynamically from live server telemetry (<code className="text-blue-300">/rooms/&#123;id&#125;/availability</code>).
+          <strong>Campus Architecture Notice:</strong> 3D building and floor geometries represent static campus architectural models, while venue occupancy and availability details are loaded dynamically from live server telemetry (<code className="text-[#B8F36B]">/rooms/&#123;id&#125;/availability</code>).
         </span>
       </div>
 
       {/* Building Stats Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xl">
+          <div className="w-10 h-10 rounded-xl bg-[#B8F36B]/15 text-[#B8F36B] flex items-center justify-center font-bold text-xl">
             {building.icon}
           </div>
           <div>
@@ -130,7 +130,7 @@ export default function BuildingExplorer() {
                 onClick={() => setSelectedFloor(floor)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   selectedFloor === floor
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
               >
@@ -155,11 +155,11 @@ export default function BuildingExplorer() {
                     `/campus/${building.id}/floor/${room.floor}/room/${room.id}`
                   )
                 }
-                className="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700/60 hover:border-blue-500/60 cursor-pointer transition-all duration-200 group flex flex-col justify-between space-y-3"
+                className="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-700/60 hover:border-[#B8F36B]/60 cursor-pointer transition-all duration-200 group flex flex-col justify-between space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-bold text-sm text-slate-100 group-hover:text-blue-400 transition-colors">
+                    <h4 className="font-bold text-sm text-slate-100 group-hover:text-[#B8F36B] transition-colors">
                       {room.name}
                     </h4>
                     <span className="text-xs text-slate-400">{room.type}</span>
@@ -172,7 +172,7 @@ export default function BuildingExplorer() {
                   <span>{room.accessible ? '♿ Accessible' : 'Standard'}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-medium text-blue-400 pt-1">
+                <div className="flex items-center justify-between text-xs font-medium text-[#B8F36B] pt-1">
                   <span>Inspect Schedule</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>

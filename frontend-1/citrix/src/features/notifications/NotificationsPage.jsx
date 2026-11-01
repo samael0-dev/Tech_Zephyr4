@@ -44,7 +44,7 @@ export default function NotificationsPage() {
       case 'error':
         return <XCircle className="w-5 h-5 text-red-400" />;
       default:
-        return <Info className="w-5 h-5 text-blue-400" />;
+        return <Info className="w-5 h-5 text-[#B8F36B]" />;
     }
   };
 
@@ -73,7 +73,7 @@ export default function NotificationsPage() {
             onClick={() => setActiveFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
               activeFilter === f
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -95,8 +95,8 @@ export default function NotificationsPage() {
               onClick={() => markRead(n.id)}
               className={`p-4 flex items-start gap-4 cursor-pointer transition-all ${
                 !n.read
-                  ? 'bg-slate-900/90 border-blue-500/40 shadow-md'
-                  : 'bg-slate-950/60 border-slate-800 opacity-80'
+                  ? 'bg-slate-900/90 border-[#B8F36B]/40 shadow-md'
+                  : 'bg-[#080A09]/60 border-slate-800 opacity-80'
               }`}
             >
               <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60 shrink-0">
@@ -110,7 +110,7 @@ export default function NotificationsPage() {
                       {n.title}
                     </span>
                     {!n.read && (
-                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-[#B8F36B] animate-pulse" />
                     )}
                   </div>
                   <span className="text-[10px] text-slate-500 font-mono">

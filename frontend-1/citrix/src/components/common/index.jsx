@@ -13,16 +13,16 @@ export function Button({
   icon: Icon,
   ...props
 }) {
-  const base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] tracking-tight';
+  const base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#080A09] disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] tracking-tight';
 
   const variants = {
-    primary: 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white focus:ring-indigo-500 shadow-lg shadow-indigo-950/50 border border-indigo-400/20',
-    secondary: 'bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-700/70 focus:ring-slate-500',
-    teal: 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white focus:ring-teal-500 shadow-lg shadow-teal-950/50 border border-teal-400/20',
+    primary: 'bg-[#B8F36B] hover:bg-[#A6E854] text-[#101110] font-bold focus:ring-[#B8F36B] shadow-glow-sm hover:shadow-glow-green border border-[#B8F36B]/20',
+    secondary: 'bg-[#161B18] hover:bg-[#1F2420] text-slate-200 border border-[#1F2420] focus:ring-[#B8F36B]',
+    teal: 'bg-[#007A64] hover:bg-[#009477] text-white focus:ring-[#007A64] shadow-lg shadow-black/40 border border-[#007A64]/30',
     danger: 'bg-rose-600/90 hover:bg-rose-500 text-white focus:ring-rose-500 shadow-lg shadow-rose-950/40 border border-rose-500/30',
-    ghost: 'bg-transparent hover:bg-slate-800/80 text-slate-300 hover:text-white',
-    outline: 'border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white hover:bg-slate-800/50',
-    emerald: 'bg-emerald-600 hover:bg-emerald-500 text-white focus:ring-emerald-500 shadow-lg shadow-emerald-950/40 border border-emerald-400/20',
+    ghost: 'bg-transparent hover:bg-[#161B18] text-[#9AA19C] hover:text-white',
+    outline: 'border border-[#1F2420] hover:border-[#B8F36B]/40 text-[#9AA19C] hover:text-white hover:bg-[#161B18]/50',
+    emerald: 'bg-[#10B981] hover:bg-[#059669] text-[#101110] font-bold focus:ring-[#10B981] shadow-lg shadow-emerald-950/40 border border-[#10B981]/30',
   };
 
   const sizes = {
@@ -55,13 +55,13 @@ export function Badge({
   dot = false,
 }) {
   const variants = {
-    blue: 'bg-sky-500/10 text-sky-300 border-sky-500/25',
-    teal: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/25',
-    green: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25',
-    amber: 'bg-amber-500/10 text-amber-300 border-amber-500/25',
-    red: 'bg-rose-500/10 text-rose-300 border-rose-500/25',
-    purple: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/25',
-    slate: 'bg-slate-800/60 text-slate-300 border-slate-700/50',
+    blue: 'bg-[#B8F36B]/15 text-[#B8F36B] border-[#B8F36B]/30',
+    teal: 'bg-[#007A64]/20 text-[#10B981] border-[#007A64]/40',
+    green: 'bg-[#10B981]/15 text-[#B8F36B] border-[#10B981]/30',
+    amber: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
+    red: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
+    purple: 'bg-[#0B132B] text-[#B8F36B] border-[#1F2420]',
+    slate: 'bg-[#161B18] text-[#9AA19C] border-[#1F2420]',
   };
 
   const sizes = {
@@ -70,13 +70,13 @@ export function Badge({
   };
 
   const dotColors = {
-    blue: 'bg-sky-400',
-    teal: 'bg-cyan-400',
-    green: 'bg-emerald-400',
+    blue: 'bg-[#B8F36B]',
+    teal: 'bg-[#10B981]',
+    green: 'bg-[#B8F36B]',
     amber: 'bg-amber-400',
     red: 'bg-rose-400',
-    purple: 'bg-indigo-400',
-    slate: 'bg-slate-400',
+    purple: 'bg-[#B8F36B]',
+    slate: 'bg-[#777D78]',
   };
 
   return (
@@ -88,7 +88,7 @@ export function Badge({
         className
       )}
     >
-      {dot && <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', dotColors[variant] || 'bg-slate-400')} />}
+      {dot && <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', dotColors[variant] || 'bg-[#777D78]')} />}
       {children}
     </span>
   );
@@ -98,8 +98,8 @@ export function Card({ children, className, hover = false, ...props }) {
   return (
     <div
       className={cn(
-        'bg-slate-900/60 border border-slate-800/80 rounded-2xl backdrop-blur-md transition-all duration-200',
-        hover && 'hover:bg-slate-900/90 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/30',
+        'bg-[#161B18] border border-[#1F2420] rounded-2xl backdrop-blur-md transition-all duration-200',
+        hover && 'hover:bg-[#121614] hover:border-[#B8F36B]/40 hover:shadow-elevation hover:shadow-black/40',
         className
       )}
       {...props}
@@ -134,21 +134,21 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="fixed inset-0" onClick={onClose} />
       <div
         className={cn(
-          'relative w-full bg-[#0B1120] border border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]',
+          'relative w-full bg-[#080A09] border border-[#1F2420] rounded-2xl shadow-floating z-10 overflow-hidden flex flex-col max-h-[90vh]',
           sizeClasses[size]
         )}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-900/90">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1F2420] bg-[#121614]">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-1.5 text-[#9AA19C] hover:text-white hover:bg-[#161B18] rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -182,7 +182,7 @@ export function EmptyState({ icon: Icon = AlertCircle, title, description, actio
   return (
     <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
       <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 mb-4 shadow-inner">
-        <Icon className="w-7 h-7 text-indigo-400" />
+        <Icon className="w-7 h-7 text-[#B8F36B]" />
       </div>
       <h4 className="text-base font-bold text-slate-100 mb-1">{title}</h4>
       <p className="text-xs sm:text-sm text-slate-400 max-w-sm mb-5 leading-relaxed">{description}</p>

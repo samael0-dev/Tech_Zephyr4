@@ -187,7 +187,7 @@ export default function RoomSearch() {
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded text-xs ${
                 viewMode === 'grid'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -197,7 +197,7 @@ export default function RoomSearch() {
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded text-xs ${
                 viewMode === 'list'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -216,7 +216,7 @@ export default function RoomSearch() {
       {/* Grid View */}
       {loading ? (
         <Card className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-          <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
           Loading campus venues from authoritative server...
         </Card>
       ) : error ? (
@@ -241,7 +241,7 @@ export default function RoomSearch() {
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-bold text-base text-slate-100 group-hover:text-blue-400 transition-colors">
+                      <h4 className="font-bold text-base text-slate-100 group-hover:text-[#B8F36B] transition-colors">
                         {room.name}
                       </h4>
                       <p className="text-xs text-slate-400 mt-0.5">
@@ -285,7 +285,7 @@ export default function RoomSearch() {
                     onClick={() =>
                       navigate(`/campus/${bldId}/floor/${room.floor}/room/${room.id}`)
                     }
-                    className="font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    className="font-semibold text-[#B8F36B] hover:text-[#B8F36B] flex items-center gap-1"
                   >
                     <span>Timeline Details</span>
                     <ArrowRight className="w-3.5 h-3.5" />

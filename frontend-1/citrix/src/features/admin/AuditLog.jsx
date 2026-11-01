@@ -99,7 +99,7 @@ export default function AuditLog() {
               onClick={() => setFilterAction(type)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 filterAction === type
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
@@ -124,7 +124,7 @@ export default function AuditLog() {
       <Card className="divide-y divide-slate-800/80 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
             Loading cryptographic audit logs from server...
           </div>
         ) : error ? (
@@ -142,7 +142,7 @@ export default function AuditLog() {
             className="p-4 hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
           >
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center font-mono text-[10px] text-blue-400 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center font-mono text-[10px] text-[#B8F36B] shrink-0">
                 {log.id}
               </div>
 

@@ -157,7 +157,7 @@ export default function TimetableComparison() {
       {/* Side-by-Side Diff Cards */}
       <div className="space-y-4">
         <h3 className="font-bold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
-          <GitCompare className="w-4 h-4 text-blue-400" />
+          <GitCompare className="w-4 h-4 text-[#B8F36B]" />
           Individual Relocation Proposals
         </h3>
 

@@ -148,7 +148,7 @@ export default function CoordinatorDashboard() {
 
         <Card className="p-4">
           <span className="text-xs text-slate-400 block uppercase font-semibold">Weekly CSE Sessions</span>
-          <span className="text-2xl font-black text-blue-400 mt-1 block">
+          <span className="text-2xl font-black text-[#B8F36B] mt-1 block">
             {cseSessions.length} Hours
           </span>
           <span className="text-[11px] text-slate-500">
@@ -182,7 +182,7 @@ export default function CoordinatorDashboard() {
               </div>
               <Link
                 to="/timetable/weekly"
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+                className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold flex items-center gap-1"
               >
                 Full Schedule <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -199,7 +199,7 @@ export default function CoordinatorDashboard() {
                     className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between text-xs"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 font-mono font-bold flex flex-col items-center justify-center text-[10px]">
+                      <div className="w-10 h-10 rounded-lg bg-[#B8F36B]/15 text-[#B8F36B] font-mono font-bold flex flex-col items-center justify-center text-[10px]">
                         <span>{s.startTime}</span>
                         <span className="text-slate-500">{s.endTime}</span>
                       </div>

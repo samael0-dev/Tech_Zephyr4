@@ -123,7 +123,7 @@ export default function FacultyDashboard() {
 
         <Card className="p-4">
           <span className="text-xs text-slate-400 block uppercase font-semibold">Assigned Courses</span>
-          <span className="text-2xl font-black text-blue-400 mt-1 block">
+          <span className="text-2xl font-black text-[#B8F36B] mt-1 block">
             {facultyData?.total_courses ? `${facultyData.total_courses} Courses` : `${myCourses.length} Courses`}
           </span>
           <span className="text-[11px] text-slate-500">
@@ -159,7 +159,7 @@ export default function FacultyDashboard() {
               </div>
               <Link
                 to="/timetable/weekly"
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+                className="text-xs text-[#B8F36B] hover:text-[#B8F36B] font-semibold flex items-center gap-1"
               >
                 Full Calendar <ArrowRight className="w-3.5 h-3.5" />
               </Link>

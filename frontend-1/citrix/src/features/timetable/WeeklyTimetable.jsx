@@ -158,9 +158,9 @@ export default function WeeklyTimetable() {
   };
 
   const typeColorMap = {
-    Lecture: 'bg-blue-600/20 border-blue-500/50 text-blue-300 hover:bg-blue-600/30',
-    Tutorial: 'bg-teal-600/20 border-teal-500/50 text-teal-300 hover:bg-teal-600/30',
-    Lab: 'bg-purple-600/20 border-purple-500/50 text-purple-300 hover:bg-purple-600/30',
+    Lecture: 'bg-[#B8F36B]/15 border-[#B8F36B]/40 text-[#B8F36B] hover:bg-[#B8F36B]/25',
+    Tutorial: 'bg-[#007A64]/25 border-[#007A64]/50 text-[#10B981] hover:bg-[#007A64]/35',
+    Lab: 'bg-[#10B981]/20 border-[#10B981]/50 text-[#B8F36B] hover:bg-[#10B981]/30',
   };
 
   return (
@@ -190,7 +190,7 @@ export default function WeeklyTimetable() {
             onClick={() => handleModeChange('group')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               filterMode === 'group'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -201,7 +201,7 @@ export default function WeeklyTimetable() {
             onClick={() => handleModeChange('faculty')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               filterMode === 'faculty'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -212,7 +212,7 @@ export default function WeeklyTimetable() {
             onClick={() => handleModeChange('room')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               filterMode === 'room'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-white'
             }`}
           >
@@ -309,7 +309,7 @@ export default function WeeklyTimetable() {
                             key={day}
                             className="p-1.5 border-r border-slate-800 last:border-r-0 align-middle text-center bg-indigo-950/20"
                           >
-                            <div className="text-[10px] text-indigo-300/80 font-mono italic flex items-center justify-center gap-1">
+                            <div className="text-[10px] text-[#B8F36B]/80 font-mono italic flex items-center justify-center gap-1">
                               <span>↳</span>
                               <span className="font-semibold">{sessionContinuingHere.course}</span>
                               <span className="opacity-75">Lab (cont.)</span>
@@ -380,7 +380,7 @@ export default function WeeklyTimetable() {
           title={`Session Details: ${selectedSession.course}`}
         >
           <div className="space-y-4 text-xs">
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <div className="p-3 bg-[#080A09] rounded-xl border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm text-slate-100">
                   {COURSES.find((c) => c.id === selectedSession.course)?.name}
@@ -395,7 +395,7 @@ export default function WeeklyTimetable() {
               </div>
             </div>
 
-            <div className="p-3 bg-blue-950/20 border border-blue-500/30 rounded-xl text-blue-300">
+            <div className="p-3 bg-[#121614] border border-[#B8F36B]/30 rounded-xl text-[#B8F36B]">
               <span className="font-semibold block mb-0.5">Constraint Audit:</span>
               <span>All student groups and faculty bounds verified. No overlapping classroom bookings.</span>
             </div>

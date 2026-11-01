@@ -23,7 +23,7 @@ export function getDashboardForRole(role) {
 }
 
 const RoleLoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-[50vh] bg-[#0B1120]">
+  <div className="flex items-center justify-center min-h-[50vh] bg-[#080A09]">
     <div className="flex flex-col items-center gap-4">
       <div className="w-10 h-10 rounded-full border-4 border-slate-700 border-t-cyan-500 animate-spin" />
       <p className="text-slate-400 text-xs tracking-wider uppercase font-semibold">

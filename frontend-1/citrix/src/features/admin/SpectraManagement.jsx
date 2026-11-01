@@ -180,7 +180,7 @@ export default function SpectraManagement() {
       {/* 6-Tier Priority Legend */}
       <Card className="p-4 space-y-2">
         <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-blue-400" />
+          <ShieldCheck className="w-4 h-4 text-[#B8F36B]" />
           Authoritative 6-Tier Institutional Priority Hierarchy
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 text-xs">
@@ -209,7 +209,7 @@ export default function SpectraManagement() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
@@ -226,7 +226,7 @@ export default function SpectraManagement() {
             placeholder="Search event, club, or room..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#B8F36B]"
           />
         </div>
       </div>
@@ -344,7 +344,7 @@ export default function SpectraManagement() {
           }
         >
           <div className="space-y-4 text-xs">
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+            <div className="p-3 bg-[#080A09] rounded-xl border border-slate-800 space-y-1">
               <div className="text-slate-400">Club: <strong className="text-white">{actionEvent.club}</strong></div>
               <div className="text-slate-400">Requested: <strong className="text-white">{actionEvent.requestedRoom}</strong> ({actionEvent.day}, P{actionEvent.startPeriod}-P{actionEvent.endPeriod})</div>
               <div className="text-slate-400">Priority: <Badge variant={priorityBadgeMap[actionEvent.priority] || 'blue'} size="sm">P{actionEvent.priority || 6}</Badge></div>
@@ -358,7 +358,7 @@ export default function SpectraManagement() {
                 value={decisionReason}
                 onChange={(e) => setDecisionReason(e.target.value)}
                 rows={3}
-                className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full p-2.5 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
@@ -370,7 +370,7 @@ export default function SpectraManagement() {
                 <select
                   value={alternativeRoom}
                   onChange={(e) => setAlternativeRoom(e.target.value)}
-                  className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+                  className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
                 >
                   {availableRooms.filter((r) => r.id !== actionEvent.requestedRoom).map((r) => (
                     <option key={r.id} value={r.id}>

@@ -176,7 +176,7 @@ export default function ApprovalManagement() {
           onClick={() => setActiveTab('bookings')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'bookings'
-              ? 'bg-blue-600 text-white shadow-md'
+              ? 'bg-[#B8F36B] text-[#101110] font-bold shadow-glow-sm'
               : 'bg-slate-800 text-slate-400 hover:text-white'
           }`}
         >
@@ -199,7 +199,7 @@ export default function ApprovalManagement() {
         <div className="space-y-3">
           {bookingsLoading ? (
             <Card className="p-12 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#B8F36B]" />
               Loading bookings from server...
             </Card>
           ) : bookingsError ? (
@@ -260,7 +260,7 @@ export default function ApprovalManagement() {
                       </div>
 
                       {b.raw_text && (
-                        <p className="text-[11px] text-blue-300 italic mt-1.5">
+                        <p className="text-[11px] text-[#B8F36B] italic mt-1.5">
                           "{b.raw_text}"
                         </p>
                       )}
@@ -371,7 +371,7 @@ export default function ApprovalManagement() {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 rows={2}
-                className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+                className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               />
             </div>
 
@@ -382,7 +382,7 @@ export default function ApprovalManagement() {
               <select
                 value={alternativeVenue}
                 onChange={(e) => setAlternativeVenue(e.target.value)}
-                className="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
+                className="w-full p-2 bg-[#080A09] border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none"
               >
                 {availableRooms.map((r) => (
                   <option key={r.id} value={r.id}>
