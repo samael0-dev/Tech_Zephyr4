@@ -277,6 +277,24 @@ Booking requests are evaluated using the institutional priority hierarchy:
 
 Role-based category caps further restrict the booking priorities that users can request.
 
+### Visual Highlights: 3D Campus Explorer & Official Schedule Validator
+
+<div align="center">
+
+| Interactive CIT Campus (3D Digital Twin) | Official Schedule Validator Report (`validator.py`) |
+| :---: | :---: |
+| <img src="docs/assets/campus_explorer_3d.png" alt="Interactive CIT Campus 3D Digital Twin" width="450" /> | <img src="docs/assets/validator_report.png" alt="Official Schedule Validator Report" width="370" /> |
+| **Interactive 3D Campus Explorer**: Real-time architectural spatial visualization with building raycasting, floor-by-floor breakdown, and live room availability indicators (`/campus`). | **100% Constraint Compliance**: Official `validator.py` report confirming **0 Hard Constraint Violations (H1–H12)** across all 189 teaching sessions, with an optimal soft penalty score of **3** (`/admin/timetable/generate`). |
+
+</div>
+
+> [!IMPORTANT]
+> ### ⚡ Cloud Deployment & Free-Tier Services Notice
+> We have implemented and deployed our production system using a **Neon Serverless PostgreSQL** database and a **Render** cloud backend.
+> As these are hosted on **free-tier services**, they operate with **lazy loading** (automatic compute sleep after periods of inactivity).
+> - The **initial request** to wake up the backend and database may experience a cold-start delay and take **some time to fetch the data** (typically 30–50 seconds).
+> - Once the services are active, subsequent requests and real-time operations load at standard speeds.
+
 ---
 
 ## 4. Technology Stack
