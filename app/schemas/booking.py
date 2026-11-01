@@ -8,6 +8,7 @@ class BookingTimeWindow(BaseModel):
     day: str
     from_period: int
     to_period: int
+    date: Optional[str] = None
 
 
 class BookingCreateRequest(BaseModel):
@@ -23,6 +24,7 @@ class BookingCreateRequest(BaseModel):
     series_id: Optional[str] = None
     raw_text: Optional[str] = None
     department: Optional[str] = None
+    auto_execute: bool = False
 
 
 class BookingDecisionRequest(BaseModel):

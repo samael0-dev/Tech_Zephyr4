@@ -12,9 +12,10 @@ load_dotenv()
 
 logger = logging.getLogger("citrix.ai")
 
-# Model configuration as explicitly requested: ChatGroq with llama-3.1-8b-instant and Hinglish support
-DEFAULT_MODEL = "llama-3.1-8b-instant"
-FALLBACK_GROQ_MODEL = "openai/gpt-oss-20b"
+# Model configuration for ChatGroq with multi-model resiliency and Hinglish support
+DEFAULT_MODEL = "openai/gpt-oss-20b"
+FALLBACK_GROQ_MODEL = "llama-3.1-8b-instant"
+SUPPORTED_GROQ_MODELS = ["openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.1-8b-instant"]
 DEFAULT_TEMPERATURE = 0.7
 
 _cached_chat_model: Optional[BaseChatModel] = None

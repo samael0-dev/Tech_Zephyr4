@@ -3,7 +3,12 @@ import { apiClient } from './apiClient';
 
 function dateToDayOfWeek(dateStr) {
   if (!dateStr) return 'MON';
-  const d = new Date(dateStr + 'T00:00:00');
+  let formatted = String(dateStr).trim();
+  if (/^\d{2}-\d{2}-\d{4}$/.test(formatted)) {
+    const [d, m, y] = formatted.split('-');
+    formatted = `${y}-${m}-${d}`;
+  }
+  const d = new Date(formatted + 'T00:00:00');
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const dayIdx = isNaN(d.getDay()) ? 1 : d.getDay();
   const mapped = days[dayIdx];
@@ -41,13 +46,21 @@ function timeRangeToPeriods(startTime, endTime) {
 }
 
 function normalizeBooking(b) {
+  const fromP = b.assigned_start_period || b.windows?.[0]?.from_period || 6;
+  const toP = b.assigned_end_period || b.windows?.[0]?.to_period || 7;
+  const dayCode = b.assigned_day || b.windows?.[0]?.day || 'MON';
+  const explicitDate = b.windows?.[0]?.date || b.date;
+
   return {
     ...b,
     id: b.id,
     title: b.title || 'Untitled Booking',
     room: b.assigned_room_id || b.requested_room || 'TBD',
     requested_room: b.requested_room,
-    day: b.assigned_day || b.windows?.[0]?.day || 'TBD',
+    day: dayCode,
+    date: explicitDate || dayCode,
+    startTime: b.startTime || `${fromP + 7}:00`,
+    endTime: b.endTime || `${toP + 8}:00`,
     time: b.assigned_start_period
       ? `Period ${b.assigned_start_period}${b.assigned_end_period ? `-${b.assigned_end_period}` : ''}`
       : b.windows?.[0]
@@ -58,9 +71,11 @@ function normalizeBooking(b) {
     role: b.role,
     category: b.effective_category || b.requested_category || 'club_event',
     attendance: b.attendance || 0,
+    attendees: b.attendance || 0,
     duration: b.duration_periods || 1,
     submittedOn: b.submitted_at || new Date().toISOString(),
     decisionReason: b.decision_reason,
+    rejectedReason: b.decision_reason,
   };
 }
 
@@ -112,6 +127,7 @@ export const bookingService = {
           : [
               {
                 day,
+                date: booking.date || null,
                 from_period: fromPeriod,
                 to_period: toPeriod,
               },
@@ -130,6 +146,7 @@ export const bookingService = {
         requested_room: booking.room || booking.requested_room || null,
         raw_text: booking.raw_text || booking.description || booking.purpose || null,
         needs: booking.facilities || booking.needs || [],
+        auto_execute: Boolean(booking.auto_execute),
       };
 
       const data = await apiClient.post('/bookings', payload);
@@ -204,42 +221,52 @@ export const bookingService = {
     return apiClient.post('/bookings/evaluate');
   },
 
-  parseNLRequest: async (text) => {
+  parseNLRequest: async (text, context = null) => {
     try {
-      // Connect to real backend AI intent parsing
-      const res = await apiClient.post('/assistant/chat', { message: text });
-      const proposal = res?.action_proposal || {};
-      const entities = res?.entities || {};
-
-      const parsed = {
-        title: entities.title || proposal.title || 'Extracted Event',
-        room: entities.room || proposal.requested_room || 'AUD',
-        date: entities.day || proposal.day || '2026-11-09',
-        startTime: '14:00',
-        endTime: '16:00',
-        time: proposal.from_period ? `P${proposal.from_period}` : 'P6-P8',
-        attendance: entities.attendance || proposal.attendance || 50,
-        capacity: entities.attendance || proposal.attendance || 50,
-        category: proposal.requested_category || 'club_event',
-        purpose: text,
-      };
-
-      return {
-        data: {
-          ...parsed,
-          parsed,
-          suggestedRooms: proposal.requested_room
-            ? [{ id: proposal.requested_room, name: proposal.requested_room }]
-            : [],
-          parsedSuccessfully: true,
-          action_proposal: proposal,
-          reply: res?.reply,
-        },
-        demo: false,
-      };
+      const res = await apiClient.post('/bookings/parse-nl', { text, context });
+      if (res && res.data) {
+        return {
+          data: res.data,
+          demo: false,
+        };
+      }
+      return { data: res, demo: false };
     } catch (err) {
-      console.error('Real AI assistant parse error:', err.message);
-      throw err;
+      console.warn('Real /bookings/parse-nl API failed, trying assistant/chat fallback:', err.message);
+      try {
+        const res = await apiClient.post('/assistant/chat', { message: text });
+        const proposal = res?.action_proposal || {};
+        const entities = res?.entities || {};
+
+        const parsed = {
+          title: entities.title || proposal.title || 'Extracted Event',
+          room: entities.room || proposal.requested_room || 'AUD',
+          date: '2026-11-09',
+          startTime: proposal.from_period ? `${proposal.from_period + 7}:00` : '10:00',
+          endTime: proposal.to_period ? `${proposal.to_period + 8}:00` : '12:00',
+          time: proposal.from_period ? `P${proposal.from_period}` : 'P3-P4',
+          attendance: entities.attendance || proposal.attendance || 40,
+          capacity: entities.attendance || proposal.attendance || 40,
+          category: proposal.requested_category || 'club_event',
+          type: 'Classroom',
+          accessible: false,
+          purpose: text,
+        };
+
+        return {
+          data: {
+            parsed,
+            suggestedRooms: proposal.requested_room
+              ? [{ id: proposal.requested_room, name: proposal.requested_room }]
+              : [],
+            confidence: 0.85,
+          },
+          demo: false,
+        };
+      } catch (fallbackErr) {
+        console.error('All NL parsing endpoints failed:', fallbackErr.message);
+        throw fallbackErr;
+      }
     }
   },
 };

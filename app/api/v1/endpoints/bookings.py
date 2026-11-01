@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from pydantic import BaseModel
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
@@ -302,3 +303,29 @@ def evaluate_fest_bookings_endpoint(
         data=eval_res,
         message="Spectra Week booking evaluation executed successfully via CP-SAT engine.",
     )
+
+
+class NLBookingParseRequest(BaseModel):
+    text: str
+    context: Optional[Dict[str, Any]] = None
+
+
+@router.post("/parse-nl", response_model=ApiResponse[Dict[str, Any]])
+def parse_natural_language_booking(
+    req: NLBookingParseRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Parses unstructured venue requests written in plain English or Hinglish
+    into structured booking parameters and suggests eligible campus venues.
+    Supports multi-turn interactive conversational follow-ups.
+    """
+    from app.services.nl_booking_parser import parse_nl_booking
+    result = parse_nl_booking(req.text, db, context=req.context)
+    return ApiResponse(
+        success=True,
+        data=result,
+        message="Natural language request parsed successfully.",
+    )
+

@@ -106,9 +106,14 @@ export default function BookingForm() {
         roomType: selectedRoomObj?.type ? selectedRoomObj.type.toLowerCase().replace(/\s+/g, '_') : 'classroom',
         room_types: selectedRoomObj?.type ? [selectedRoomObj.type.toLowerCase().replace(/\s+/g, '_')] : ['classroom'],
         type: 'manual',
+        auto_execute: userRole === 'admin',
       });
 
-      toast.success('Venue booking submitted for Dean’s Office approval!');
+      if (userRole === 'admin') {
+        toast.success('Clash-Free! Venue booking directly executed & scheduled by Dean.');
+      } else {
+        toast.success('Venue booking submitted for Dean’s Office approval!');
+      }
       navigate('/bookings');
     } catch (err) {
       const msg = err?.message || 'Failed to submit booking';

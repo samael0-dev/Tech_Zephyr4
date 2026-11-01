@@ -238,7 +238,13 @@ export default function BookingDetail() {
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-100">{booking.day}</div>
+            <div className="text-sm font-bold text-slate-100">
+              {booking.windows?.[0]?.date
+                ? `${booking.windows[0].date} (${booking.day})`
+                : booking.date
+                ? `${booking.date} (${booking.day})`
+                : booking.day}
+            </div>
             <div className="text-xs text-slate-400">{booking.time}</div>
           </div>
         </Card>
